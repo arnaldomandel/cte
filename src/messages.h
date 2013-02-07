@@ -1,0 +1,21 @@
+/*
+ * Definition of error codes and fatal error method.
+ */
+
+/*
+ * The possible error codes
+ */
+enum Error_code {
+  FILE_NOT_FOUND = 1,
+  WRONG_ARGUMENTS = 2
+};
+
+/*
+ * This method shows a message according to the given error code, then exits the program.
+ */
+void fatal_error(enum Error_code code);
+
+/*
+ * Prints the usage manual and exits the program.
+ */
+void usage();
