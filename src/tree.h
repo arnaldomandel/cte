@@ -15,8 +15,11 @@ typedef struct bic_data Bic_data;
 struct prob_data {
   int occurrences; //on sample
   double probability;
-  int degreesFreedom;
+  int degrees_freedom;
   double Lw;
+
+  // if true, means this node should not be calculated, but it is used for degrees of freedom calculation of its fahter
+  int placeholder;
 };
 
 /*

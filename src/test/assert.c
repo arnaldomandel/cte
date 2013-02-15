@@ -8,6 +8,8 @@
 #include <stdlib.h>
 #include "assert.h"
 
+#define FLOAT_ERROR 0.0001f
+
 /**
  * Uses the == operator to verify if the 2 first arguments are the same.
  * Both the 1st and 2nd arguments should be pointers.
@@ -31,5 +33,15 @@ void assert_equals_int(int expected, int actual, char* error_message) {
   }
   fprintf(stderr, error_message);
   fprintf(stderr, "expected: %d\nactual: %d\n", expected, actual);
+  exit(1);
+}
+
+
+void assert_near_float(float expected, float actual, char* error_message) {
+  if ((expected - FLOAT_ERROR < actual) && (actual < expected + FLOAT_ERROR)) {
+    return;
+  }
+  fprintf(stderr, error_message);
+  fprintf(stderr, "expected: %f\nactual: %f\n", expected, actual);
   exit(1);
 }
