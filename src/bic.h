@@ -21,4 +21,4 @@ void setup_BIC(char* alphabet, char** samples, int depth);
 /**
  * Calculates the champion Tree
  */
-Tao calculate_BIC(double c);
+Tao* calculate_BIC(double c);

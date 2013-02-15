@@ -6,24 +6,39 @@
 
 typedef struct tree_node Tree_node;
 
-typedef struct node_data Node_data;
+typedef struct prob_data Prob_data;
+typedef struct bic_data Bic_data;
 
 /*
- * Structure that hold the data that will be stored on each node
+ * Structure that holds the data that will be stored on each node of the probability tree
  */
-struct node_data {
+struct prob_data {
   int occurrences; //on sample
   double probability;
   int degreesFreedom;
   double Lw;
-  char symbol;
+};
+
+/*
+ * structure that holds the data used to calculate a BIC tree.
+ */
+struct bic_data {
+  double Vw;
+  int Sw;
+};
+
+enum node_type {
+  PROB,
+  BIC
 };
 
 /*
  * The tree node structure.
  */
 struct tree_node {
-  Node_data data;
+  Prob_data* prob_data;
+  Bic_data* bic_data;
+  char symbol;
   Tree_node* child;
   Tree_node* sibling;
   Tree_node* parent;
@@ -33,10 +48,11 @@ struct tree_node {
 /*
  * Return the child of the given node that is related to the symbol from the alphabet.
  * If such a child does not exits, then this method creates one and returns it.
+ * If the child is created, it will also allocate space to one of the data structures (Prob_data or Bic_data) according to the given type.
  */
-Tree_node* get_node_child(Tree_node* parent, char symbol);
+Tree_node* get_create_node_child(Tree_node* parent, char symbol, int type);
 
 /*
- * Returns the root of the tree.
+ * Frees the memory used by a node, its childs and siblings.
  */
-Tree_node* get_tree_root();
+void free_node(Tree_node* node);

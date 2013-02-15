@@ -17,11 +17,17 @@ clean:
 	rm -f test/*.o
 
 #Tests
-tests:	../bin/tree_test
-
-
-test/tree_test.o: test/tree_test.c
+test/assert.o: test/assert.c
 	cc $(CFLAGS) -I . -c -o $@ $^
 
-../bin/tree_test: test/tree_test.o tree.o
-	cc $(CFLAGS) -I . -o  $^
+test/tree_test.o: test/tree_test.c 
+	cc $(CFLAGS) -I . -c -o $@ $^
+
+tree_test: test/tree_test.o tree.o test/assert.o
+	cc $(CFLAGS) -I . -o ../bin/$@ $^
+
+test/bic_test.o: test/bic_test.c
+	cc $(CFLAGS) -I . -c -o $@ $^
+
+bic_test: test/bic_test.o tree.o bic.o test/assert.o
+	cc $(CFLAGS) -I . -o ../bin/$@ $^

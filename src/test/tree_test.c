@@ -3,6 +3,7 @@
  */
 
 #include "tree.h"
+#include "assert.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -15,32 +16,30 @@
  * Then runs the bootstrap method to return the selected Context Tree.
  */
 int main(int argc, char** args) {
-  Tree_node* root = get_tree_root();
-  Tree_node* child1 = get_node_child(root, '1');
-  Tree_node* child2 = get_node_child(root, '2');
-  Tree_node* grandchild11 = get_node_child(child1, '1');
-  get_node_child(child1, '2'); // we create this grandchild just to test
+  Tree_node* root = malloc(sizeof(Tree_node));
+  Tree_node* child1 = get_create_node_child(root, '1', PROB);
+  Tree_node* child2 = get_create_node_child(root, '2', PROB);
+  Tree_node* grandchild11 = get_create_node_child(child1, '1', PROB);
+  get_create_node_child(child1, '2', PROB); // we create this grandchild just to test
 
-  Tree_node* test_get_child1 = get_node_child(root, '1');
-  Tree_node* test_get_child2 = get_node_child(root, '2');
+  Tree_node* test_get_child1 = get_create_node_child(root, '1', PROB);
+  Tree_node* test_get_child2 = get_create_node_child(root, '2', PROB);
 
-  if (child1 != test_get_child1) {
-    printf("Error, child 1 was not properly retrieved.");
-    exit(1);
-  }
 
-  if (child2 != test_get_child2) {
-    printf("Error, child 2 was not properly retrieved.");
-    exit(1);
-  }
+  assert_equals(child1, test_get_child1, "Error, child 1 was not properly retrieved.");
 
-  Tree_node* current_node = get_node_child(root, '1');
-  current_node = get_node_child(current_node, '1');
+  assert_equals(child2, test_get_child2,"Error, child 2 was not properly retrieved.");
 
-  if (current_node != grandchild11) {
-    printf("Grandchild not properly retrieved.");
-    exit(2);
-  }
+  assert_equals(child1->parent, root, "Parent for child1 not properly assigned.");
+
+  assert_equals(child2->parent, root, "Parent for child2 not properly assigned.");
+
+  Tree_node* current_node = get_create_node_child(root, '1', PROB);
+  current_node = get_create_node_child(current_node, '1', PROB);
+
+  assert_equals(current_node, grandchild11, "Grandchild not properly retrieved.");
+
+  assert_equals(grandchild11->parent, child1, "Parent for grandchild11 not properly assigned.");
 
   printf("tests ran successfully\n");
   return 0;
