@@ -1,8 +1,7 @@
 /*
- * Implementation of the BIC calculator.
+ * Methods for setup of the bic_calculator.
  */
 #include <stddef.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
@@ -17,6 +16,10 @@ int max_word_size;
  * The prob_root tree is the one that holds the occurences, probabilities, degrees of freedom and Lw(X).
  * The bic_root tree is the one on which the Vw(X) and Sw(X) (DELTAw(X))
  * In the PROB tree, the probability of a node "0101" means p(1|010).
+ * In the Prob tree nodes are stored in the conventional order.
+ * From the roots, and its childs root->0->0->1 means that the string 001 occurred in the sample.
+ * The Bic tree stores the nodes in reverse order: root->0->0->1 means that 100 occurred in the sample.
+ * Both trees should not have nodes that didn't occured in the sample.
  */
 Tree_node* prob_root;
 Tree_node* bic_root;
@@ -30,6 +33,7 @@ void set_degrees_freedom(Tree_node* node);
 void set_probability(Tree_node* node);
 void calculate_Lw(Tree_node* node);
 void set_Lw(Tree_node* node);
+
 /*
  * Sets up the BIC calculator. Performs the initial calculations that are
  * independent of the C (cost) value.
@@ -45,13 +49,6 @@ void setup_BIC(char* alphabet, char** samples, int depth) {
 
   calculate_probabilities(prob_root->child);
   calculate_Lw(prob_root->child);
-}
-
-/*
- * Calculates the BIC given the penalty c.
- */
-Tao* calculate_BIC(double c) {
-  return 0;
 }
 
 /*
