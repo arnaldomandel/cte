@@ -17,9 +17,6 @@ struct prob_data {
   double probability;
   int degrees_freedom;
   double Lw;
-
-  // if true, means this node should not be calculated, but it is used for degrees of freedom calculation of its fahter
-  int placeholder;
 };
 
 /*

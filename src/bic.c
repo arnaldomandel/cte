@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 #include "bic.h"
 #include "tree.h"
@@ -24,11 +25,11 @@ Tree_node* bic_root;
  * Definition of functions that are implemented below.
  */
 void insert_sample(char* sample);
-void calculate_probabilities();
+void calculate_probabilities(Tree_node* node);
 void set_degrees_freedom(Tree_node* node);
 void set_probability(Tree_node* node);
-
-
+void calculate_Lw(Tree_node* node);
+void set_Lw(Tree_node* node);
 /*
  * Sets up the BIC calculator. Performs the initial calculations that are
  * independent of the C (cost) value.
@@ -43,7 +44,7 @@ void setup_BIC(char* alphabet, char** samples, int depth) {
   }
 
   calculate_probabilities(prob_root->child);
-
+  calculate_Lw(prob_root->child);
 }
 
 /*
@@ -55,26 +56,18 @@ Tao* calculate_BIC(double c) {
 
 /*
  * Insert one sample into the tree.
- * There are 2 fors in this function.
- * The first is to iterate over every letter on the sample.
- * The second iterates back so that, inside it, we read words backwards.
- * These words that are at most _max_word_size_ in length.
- * Inside the second for, we also go deeper into the tree.
  */
 void insert_sample(char* sample) {
   int sample_length = strlen(sample);
+
   // first iteration to create the probability tree
   for (int i = 0; sample[i] != '\0'; i++) {
     Tree_node* current_node = prob_root;
     // besides iterating on each letter, we use this second for to iterate on words
-    // the stop condition uses max_word_size + 1 so we create an extra height, which is used for degree of freedom calculation
+    // the stop condition uses max_word_size + 1 so we create an extra height, which is used for calculations
     for (int d = 0; d < max_word_size + 1 && d + i < sample_length; d++) {
       current_node = get_create_node_child(current_node, sample[i+d], PROB);
       current_node->prob_data->occurrences++;
-      if (d == max_word_size) {
-        // here we indicate that this extra height node should not be used for anything but degree of freedom
-        current_node->prob_data->placeholder = 1;
-      }
     }
   }
 
@@ -92,20 +85,18 @@ void insert_sample(char* sample) {
  * Calculates the probabilities for the given node, its childs and siblings
  */
 void calculate_probabilities(Tree_node* node) {
-  // defense against null node, prob-data or placeholders
-  if (node == NULL || node->prob_data == NULL || node->prob_data->placeholder) {
+  // defense against null node, prob-data
+  if (node == NULL || node->prob_data == NULL) {
     return;
   }
+
+  // calculates data for current node
   set_degrees_freedom(node);
   set_probability(node);
 
   // calculates for the other nodes
-  if (node->child != NULL) {
-    calculate_probabilities(node->child);
-  }
-  if (node->sibling != NULL) {
-    calculate_probabilities(node->sibling);
-  }
+  calculate_probabilities(node->child);
+  calculate_probabilities(node->sibling);
 }
 
 /*
@@ -131,7 +122,8 @@ void set_degrees_freedom(Tree_node* node) {
 }
 
 /*
- *
+ * Calculates the probability for the current node.
+ * If current node corresponds to "100", the corresponding probability is p(0|10)
  */
 void set_probability(Tree_node* node) {
   int sum_occurrences = 0;
@@ -141,4 +133,32 @@ void set_probability(Tree_node* node) {
     current_node = current_node->sibling;
   }
   node->prob_data->probability = node->prob_data->occurrences / (double) sum_occurrences;
+}
+
+
+/*
+ * Method that calculates the Lw for the given node, its siblings and childs.
+ */
+void calculate_Lw(Tree_node* node) {
+  // defense against null node, prob-data
+  if (node == NULL || node->prob_data == NULL) {
+    return;
+  }
+  set_Lw(node);
+
+  calculate_Lw(node->child);
+  calculate_Lw(node->sibling);
+}
+
+/*
+ * Method that does the math to calculate the Lw
+ */
+void set_Lw(Tree_node* node) {
+  double value = 1.0f;
+  Tree_node* child = node->child;
+  while (child != NULL) {
+    value *= pow(child->prob_data->probability, child->prob_data->occurrences);
+    child = child->sibling;
+  }
+  node->prob_data->Lw = value;
 }
