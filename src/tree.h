@@ -25,8 +25,6 @@ struct prob_data {
 struct bic_data {
   double Vw;
   int Sw; // actually DELTAw
-  // indicates that the values on this structure have already been calculated
-  int calculated;
 };
 
 enum node_type {

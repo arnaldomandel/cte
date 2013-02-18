@@ -1,0 +1,66 @@
+\documentclass[brazil,11pt]{article}
+\usepackage[brazil]{babel}
+\usepackage[latin1]{inputenc}
+\usepackage{amsmath}
+
+\author{Karina Yaginuma \and Andr\'e Onuki dos Santos}
+\title{Context Tree Estimation - Algorithm}
+
+\begin{document}
+
+\maketitle
+
+The algorithm is divided in three parts: BIC Tree Calculation, Champion Tree Set Calculation and Bootstrapping.
+
+The BIC Tree Calculation will be used many times to calculate the Champion Tree Set. Then this set is applied to the bootstrap procedure.
+
+\section{BIC Tree Calculation}
+
+Since this procedure is repeatedly called to search for the Champion Tree Set, some data which will alway be the same are pre calculated.
+
+\begin{tabular}{rl}
+Input: & Sample(s) ``$X^n_1$''\\
+& the starting constant ``$c > 0$''\\
+&maximum depth ``$d$''
+\end{tabular}
+
+\subsection{Pre Calculations}
+
+For every string $w$ that:
+
+\begin{equation}
+l(w) \leq d
+\end{equation}
+
+\begin{equation}
+\sum_{a \in A} Nn(wa) > 0
+\end{equation}
+
+Where $l(w)$ is the length of the string $w$ and Nn(w) is the number of times that $w$ occurs in the sample.
+
+Calculate:
+\begin{equation*}
+L_w(X^n_1) = \prod_{a \in A} \hat{p}_n(a|w)^{N_n(wa)}
+\end{equation*}
+and
+\begin{equation*}
+df(w) = \sum_{a \in A} \chi(wa)
+\end{equation*}
+
+
+\subsection{Final Calculation}
+
+
+\subsection{Implementation}
+
+The Pre Calculations are implemented in the \emph{bic\_setup.c} file. The Final Calculation in the \emph{bic\_calculation.c} file.
+
+To perform the calculations, data is saved in two trees. The first called Prob Tree holds the letters from the sample in the conventional way, meaning that a child node came in the sample after its parent node. The other three, called Bic Tree, holds letter reversed, the letter from a child node came before the one on its parent node.
+
+Both trees are populated by reading every ``$d$'' sized word in the sample. So the filters described in ``Pre Calculations'' are already applied.
+
+\section{Champion Tree Set Calculation}
+
+\section{Bootstrapping}
+
+\end{document}
