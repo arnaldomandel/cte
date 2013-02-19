@@ -10,6 +10,7 @@
 #include "tree.h"
 
 int max_word_size;
+int sample_size;
 
 /*
  * We use 2 trees to calculate the BIC.
@@ -33,6 +34,7 @@ void set_degrees_freedom(Tree_node* node);
 void set_probability(Tree_node* node);
 void calculate_Lw(Tree_node* node);
 void set_Lw(Tree_node* node);
+int size_of_sample();
 
 /*
  * Sets up the BIC calculator. Performs the initial calculations that are
@@ -46,6 +48,7 @@ void setup_BIC(char* alphabet, char** samples, int depth) {
   for (int i = 0; samples[i] != NULL; i++) {
     insert_sample(samples[i]);
   }
+  sample_size = size_of_sample();
 
   calculate_probabilities(prob_root->child);
   calculate_Lw(prob_root->child);
@@ -77,6 +80,20 @@ void insert_sample(char* sample) {
     }
   }
 }
+
+/*
+ * Calculates the size of the samples, as the sum of Xn(a) for every a in the alphabet.
+ */
+int size_of_sample() {
+  int n = 0;
+  Tree_node* current_node = prob_root->child;
+  while (current_node != NULL) {
+    n += current_node->prob_data->occurrences;
+    current_node = current_node->sibling;
+  }
+  return n;
+}
+
 
 /*
  * Calculates the probabilities for the given node, its childs and siblings

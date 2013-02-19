@@ -73,3 +73,15 @@ void free_node(Tree_node* node) {
   }
   free(node);
 }
+
+/*
+ * Searches for a node with the given symbol among the child of the given node.
+ */
+Tree_node* get_child_node(Tree_node* parent, char symbol) {
+  // walk through every child node, until we find a corresponding symbol, or stop at last node
+  Tree_node* current_node = parent->child;
+  while(current_node != NULL && current_node->symbol != symbol) {
+    current_node = current_node->sibling;
+  }
+  return current_node;
+}

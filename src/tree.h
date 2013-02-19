@@ -53,6 +53,12 @@ struct tree_node {
 Tree_node* get_create_node_child(Tree_node* parent, char symbol, int type);
 
 /*
+ * Return the child of the given node that is related to the symbol from the alphabet.
+ * Returns NULL if such a child does not exits.
+ */
+Tree_node* get_child_node(Tree_node* parent, char symbol);
+
+/*
  * Frees the memory used by a node, its childs and siblings.
  */
 void free_node(Tree_node* node);

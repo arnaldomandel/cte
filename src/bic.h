@@ -2,16 +2,7 @@
  * Interface for the module that calculates the BIC trees.
  */
 
-/*
- * Tao is the structure given as the return tree.
- * It was called Tao not to be mixed up with the tree data structure.
- */
-typedef struct tao Tao;
-struct tao {
-  char* word;
-  double probability;
-};
-
+#include "tao.h"
 /*
  * Sets up the BIC calculator. Performs the initial calculations that are
  * independent of the C (cost) value.
