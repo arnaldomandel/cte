@@ -15,3 +15,13 @@
 *.exe
 *.out
 *.app
+
+# Documentation temp files
+*.aux
+*.log
+*.pdf
+*.gz
+
+# Eclipse project files
+.project
+.cproject
