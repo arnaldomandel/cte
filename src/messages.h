@@ -1,6 +1,10 @@
 /*
  * Definition of error codes and fatal error method.
  */
+#ifndef MESSAGES_H_
+#define MESSAGES_H_
+
+
 
 /*
  * The possible error codes
@@ -19,3 +23,5 @@ void fatal_error(enum Error_code code);
  * Prints the usage manual and exits the program.
  */
 void usage();
+
+#endif /* MESSAGES_H_ */

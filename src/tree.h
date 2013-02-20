@@ -3,6 +3,10 @@
  * The tree will be implemented over a binary tree where the left child is a
  * child of the current node and the right "child" is actually a sibling.
  */
+#ifndef TREE_H_
+#define TREE_H_
+
+
 
 typedef struct tree_node Tree_node;
 
@@ -62,3 +66,5 @@ Tree_node* get_child_node(Tree_node* parent, char symbol);
  * Frees the memory used by a node, its childs and siblings.
  */
 void free_node(Tree_node* node);
+
+#endif /* TREE_H_ */

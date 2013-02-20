@@ -40,7 +40,7 @@ int size_of_sample();
  * Sets up the BIC calculator. Performs the initial calculations that are
  * independent of the C (cost) value.
  */
-void setup_BIC(char* alphabet, char** samples, int depth) {
+void setup_BIC(char** samples, int depth) {
   bic_root = malloc(sizeof(Tree_node));
   prob_root = malloc(sizeof(Tree_node));
   max_word_size = depth;
@@ -127,9 +127,7 @@ void set_degrees_freedom(Tree_node* node) {
   Tree_node* current_node = node->child;
   int df = 0;
   while (current_node != NULL) {
-    if (current_node->prob_data->occurrences > 0) {
       df++;
-    }
     current_node = current_node->sibling;
   }
   node->prob_data->degrees_freedom = df;

@@ -2,6 +2,12 @@
  * Tao is the structure given as the return tree.
  * It was called Tao not to be mixed up with the tree data structure.
  */
+#ifndef TAO_H_
+#define TAO_H_
+
+
+
+
 typedef struct tao Tao;
 typedef struct tao_item Tao_item;
 
@@ -24,3 +30,5 @@ void insert_tao_item(Tao* tao, char* string, double prob);
  * Returns a new Tao.
  */
 Tao* new_Tao();
+
+#endif /* TAO_H_ */

@@ -8,6 +8,7 @@
 #include "tao.h"
 #include "tree.h"
 
+
 /*
  * these variables are defined in bic_setup.c
  */
@@ -36,7 +37,7 @@ Tao* calculate_BIC(double c) {
   VwSw(bic_root->child, c);
   Tao* tao = new_Tao();
   add_selected_words_to_tao(bic_root->child, tao);
-  return 0;
+  return tao;
 }
 
 /*
@@ -47,6 +48,7 @@ void VwSw(Tree_node* bic_node, double c) {
     return;
   }
   Tree_node* prob_node = get_prob_node(bic_node);
+
   // if node has no child, we use the Vw1 value.
   if (node_depth(bic_node) == max_word_size || bic_node->child == NULL) {
     bic_node->bic_data->Sw = 0;
@@ -61,7 +63,7 @@ void VwSw(Tree_node* bic_node, double c) {
   double vw1 = Vw1(bic_node, prob_node, c);
   double vw2 = Vw2(bic_node, c);
 
-  if (vw1 > vw2) {
+  if (vw1 >= vw2) {
     bic_node->bic_data->Sw = 0;
     bic_node->bic_data->Vw = vw1;
   } else {
@@ -133,6 +135,9 @@ Tree_node* get_prob_node(Tree_node* bic_node) {
  * Also checks children and siblings recursevely.
  */
 void add_selected_words_to_tao(Tree_node* node, Tao* tao) {
+  if(node == NULL) {
+    return;
+  }
   if (node->bic_data->Sw == 1) {
     //this node is not selected, but it's children may
     add_selected_words_to_tao(node->child, tao);

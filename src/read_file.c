@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define BUFFER_SIZE 5
+#define BUFFER_SIZE 1024
 
 /*
  * Reads one line from the specified line.

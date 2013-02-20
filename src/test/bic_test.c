@@ -11,12 +11,12 @@ extern Tree_node* prob_root;
 extern Tree_node* bic_root;
 
 /**
- * Test for the bic calculator.
+ * Test for the bic setup.
  */
 int main(int argc, char** args) {
   char** samples = malloc(2 * sizeof(char*));
   samples[0] = "01010101";
-  setup_BIC("01", samples, 2);
+  setup_BIC(samples, 2);
 
   // Verifying occurrences among the nodes
   {

@@ -24,7 +24,7 @@ Tree_node* get_create_node_child(Tree_node* parent, char symbol, int type) {
     current_node = current_node->sibling;
   }
 
-  // the correct node was not found, and current node is the last node
+  // the correct node was not found, create a new one and put it as the first one
   Tree_node* new_node = create_node_child(parent, symbol, type);
   new_node->sibling = parent->child;
   parent->child = new_node;
