@@ -5,10 +5,10 @@
 typedef struct champion_item Champion_item;
 
 /*
- * This is the structure that holds the champion set. Each item has its Tao and a pointer to the next item.
+ * This is the structure that holds the champion set. Each item has its Tau and a pointer to the next item.
  */
 struct champion_item {
-  Tao* tao;
+  Tau* tau;
   Champion_item* next;
 };
 

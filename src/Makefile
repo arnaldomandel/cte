@@ -2,14 +2,18 @@ CFLAGS= -Wall -pedantic -g
 
 all: ../bin/cte bic_calculation_test bic_test
 
-../bin/cte: main.o messages.o read_file.o tao.o bic_setup.o bic_calculator.o champion_set.o tree.o
+../bin/cte: main.o messages.o read_file.o tau.o bic_setup.o bic_calculator.o champion_set.o tree.o
 	cc $(CFLAGS) -o $@ $^
 
-main.o: main.c read_file.h bic.h tao.h champion_set.h
-
-messages.o: messages.h messages.c
-
-read_file.o: read_file.h messages.h read_file.c
+bic_calculator.o: bic_calculator.c tau.h tree.h
+bic_setup.o: bic_setup.c bic.h tau.h tree.h
+champion_set.o: champion_set.c tau.h bic.h champion_set.h
+debug.o: debug.c tree.h
+main.o: main.c read_file.h bic.h tau.h champion_set.h
+messages.o: messages.c messages.h
+read_file.o: read_file.c
+tau.o: tau.c tau.h
+tree.o: tree.c tree.h
 
 clean:
 	rm -f *.o
@@ -44,6 +48,6 @@ bic_calculation_test: ../bin/bic_calculation_test
 test/bic_calculation_test.o: test/bic_calculation_test.c
 	cc $(CFLAGS) -I . -c -o $@ $^
 
-../bin/bic_calculation_test: test/bic_calculation_test.o tree.o bic_setup.o bic_calculator.o tao.o read_file.o test/assert.o debug.o
+../bin/bic_calculation_test: test/bic_calculation_test.o tree.o bic_setup.o bic_calculator.o tau.o read_file.o test/assert.o debug.o
 	cc $(CFLAGS) -I . -o $@ $^
  	

@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include "tao.h"
+#include "tau.h"
 #include "tree.h"
 
 
@@ -23,7 +23,7 @@ extern int sample_size;
  */
 int node_depth(Tree_node* node);
 Tree_node* get_prob_node(Tree_node* bic_node);
-void add_selected_words_to_tao(Tree_node* node, Tao* tao);
+void add_selected_words_to_tau(Tree_node* node, Tau* tau);
 char* recover_sufix(Tree_node* bic_node);
 double recover_prob(char* sufix);
 void VwSw(Tree_node* bic_node, double c);
@@ -33,12 +33,12 @@ double Vw2(Tree_node* node, double c);
 /*
  * Calculates the BIC given the penalty c.
  */
-Tao* calculate_BIC(double c) {
+Tau* calculate_BIC(double c) {
   VwSw(bic_root->child, c);
-  Tao* tao = new_Tao();
-  tao->c = c;
-  add_selected_words_to_tao(bic_root->child, tao);
-  return tao;
+  Tau* tau = new_Tau();
+  tau->c = c;
+  add_selected_words_to_tau(bic_root->child, tau);
+  return tau;
 }
 
 /*
@@ -135,22 +135,22 @@ Tree_node* get_prob_node(Tree_node* bic_node) {
  * Checks if the current node represents a word that must go to the final result.
  * Also checks children and siblings recursevely.
  */
-void add_selected_words_to_tao(Tree_node* node, Tao* tao) {
+void add_selected_words_to_tau(Tree_node* node, Tau* tau) {
   if(node == NULL) {
     return;
   }
   if (node->bic_data->Sw == 1) {
     //this node is not selected, but it's children may
-    add_selected_words_to_tao(node->child, tao);
+    add_selected_words_to_tau(node->child, tau);
   } else {
-    // this node is selected, must add it to the tao and there is no need to check its children
+    // this node is selected, must add it to the tau and there is no need to check its children
     char* sufix = recover_sufix(node);
     double prob = recover_prob(sufix);
-    insert_tao_item(tao, sufix, prob);
+    insert_tau_item(tau, sufix, prob);
   }
 
   // but we must always check siblings
-  add_selected_words_to_tao(node->sibling, tao);
+  add_selected_words_to_tau(node->sibling, tau);
 }
 
 /*

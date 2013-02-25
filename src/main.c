@@ -5,7 +5,7 @@
 
 #include "read_file.h"
 #include "bic.h"
-#include "tao.h"
+#include "tau.h"
 #include "champion_set.h"
 
 #include <stdio.h>
@@ -34,7 +34,7 @@ int main(int argc, char** args) {
 
   Champion_item* bic = champion_bics;
   while (bic != NULL) {
-    print_Tao(bic->tao);
+    print_Tau(bic->tau);
     bic = bic->next;
   }
 

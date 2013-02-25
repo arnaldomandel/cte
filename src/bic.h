@@ -6,7 +6,7 @@
 
 
 
-#include "tao.h"
+#include "tau.h"
 /*
  * Sets up the BIC calculator. Performs the initial calculations that are
  * independent of the C (cost) value.
@@ -16,6 +16,6 @@ void setup_BIC(char** samples, int depth);
 /**
  * Calculates the champion Tree given the cost.
  */
-Tao* calculate_BIC(double c);
+Tau* calculate_BIC(double c);
 
 #endif /* BIC_H_ */
