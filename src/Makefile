@@ -2,10 +2,10 @@ CFLAGS= -Wall -pedantic -g
 
 all: ../bin/cte bic_calculation_test bic_test
 
-../bin/cte: main.o messages.o read_file.o
+../bin/cte: main.o messages.o read_file.o tao.o bic_setup.o bic_calculator.o champion_set.o tree.o
 	cc $(CFLAGS) -o $@ $^
 
-main.o: main.c messages.h read_file.h
+main.o: main.c read_file.h bic.h tao.h champion_set.h
 
 messages.o: messages.h messages.c
 

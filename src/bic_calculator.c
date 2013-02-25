@@ -36,6 +36,7 @@ double Vw2(Tree_node* node, double c);
 Tao* calculate_BIC(double c) {
   VwSw(bic_root->child, c);
   Tao* tao = new_Tao();
+  tao->c = c;
   add_selected_words_to_tao(bic_root->child, tao);
   return tao;
 }

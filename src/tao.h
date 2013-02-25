@@ -13,6 +13,7 @@ typedef struct tao_item Tao_item;
 
 struct tao {
   Tao_item* item;
+  double c;
 };
 
 struct tao_item {
@@ -30,5 +31,23 @@ void insert_tao_item(Tao* tao, char* string, double prob);
  * Returns a new Tao.
  */
 Tao* new_Tao();
+
+
+/*
+ * Frees the memory allocated by this Tao.
+ */
+void free_Tao(Tao* t);
+
+
+/*
+ * Verifies if both taos are equals, ie, have the same words.
+ */
+int equals_Tao(Tao* t1, Tao* t2);
+
+
+/*
+ * Prints the Tao to the stdout.
+ */
+void print_Tao(Tao* tao);
 
 #endif /* TAO_H_ */

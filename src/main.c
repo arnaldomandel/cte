@@ -3,11 +3,14 @@
  * Selects the variable length Markov chain (VLMC) using the smallest maximizer criterion (SMC).
  */
 
-#include "messages.h"
 #include "read_file.h"
-
+#include "bic.h"
+#include "tao.h"
+#include "champion_set.h"
 
 #include <stdio.h>
+#include <stddef.h>
+#include <stdlib.h>
 
 /*
  * Main method.
@@ -17,9 +20,23 @@
  * Then runs the bootstrap method to return the selected Context Tree.
  */
 int main(int argc, char** args) {
-  char** lines = read_lines(args[1]);
-  for (int i = 0; lines[i] != NULL; i++) {
-    printf("%s\n", lines[i]);
+  char* filename = args[1];
+  int depth = atoi(args[2]);
+  double max_c = strtod(args[3], NULL);
+  double epsilon = strtod(args[4], NULL);
+
+
+
+  char** sample = read_lines(filename);
+  setup_BIC(sample, depth);
+  free_lines(sample);
+  Champion_item* champion_bics = champion_set(max_c, epsilon);
+
+  Champion_item* bic = champion_bics;
+  while (bic != NULL) {
+    print_Tao(bic->tao);
+    bic = bic->next;
   }
-  free_lines(lines);
+
+
 }
