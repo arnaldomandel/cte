@@ -41,8 +41,8 @@ int size_of_sample();
  * independent of the C (cost) value.
  */
 void setup_BIC(char** samples, int depth) {
-  bic_root = malloc(sizeof(Tree_node));
-  prob_root = malloc(sizeof(Tree_node));
+  bic_root = (Tree_node*) malloc(sizeof(Tree_node));
+  prob_root = (Tree_node*) malloc(sizeof(Tree_node));
   max_word_size = depth;
 
   for (int i = 0; samples[i] != NULL; i++) {

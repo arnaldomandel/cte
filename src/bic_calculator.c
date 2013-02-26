@@ -158,7 +158,7 @@ void add_selected_words_to_tau(Tree_node* node, Tau* tau) {
  */
 char* recover_sufix(Tree_node* bic_node) {
   int length = node_depth(bic_node);
-  char* sufix = malloc((length+1)* sizeof(char)); // +1 for the \0 terminator
+  char* sufix = (char*) malloc((length+1)* sizeof(char)); // +1 for the \0 terminator
 
   Tree_node* current_node = bic_node;
   for (int i = 0; i < length; i++) {

@@ -35,15 +35,15 @@ Tree_node* get_create_node_child(Tree_node* parent, char symbol, int type) {
  * Creates a node and associates the given node as its parent and the given symbol as its own.
  */
 Tree_node* create_node_child(Tree_node* parent, char symbol, int type) {
-  Tree_node* child = (Tree_node*)malloc(1*sizeof(Tree_node));
+  Tree_node* child = (Tree_node*) malloc(1*sizeof(Tree_node));
   child->symbol = symbol;
   child->parent = parent;
 
   // allocate memory for the data structure corresponding to the given type.
   if (type == BIC) {
-    child->bic_data = malloc(sizeof(Bic_data));
+    child->bic_data = (Bic_data*) malloc(sizeof(Bic_data));
   } else if (type == PROB){
-    child->prob_data = malloc(sizeof(Prob_data));
+    child->prob_data = (Prob_data*) malloc(sizeof(Prob_data));
   }
 
   return child;

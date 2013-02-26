@@ -16,7 +16,7 @@
  * Then runs the bootstrap method to return the selected Context Tree.
  */
 int main(int argc, char** args) {
-  Tree_node* root = malloc(sizeof(Tree_node));
+  Tree_node* root = (Tree_node*) malloc(sizeof(Tree_node));
   Tree_node* child1 = get_create_node_child(root, '1', PROB);
   Tree_node* child2 = get_create_node_child(root, '2', PROB);
   Tree_node* grandchild11 = get_create_node_child(child1, '1', PROB);

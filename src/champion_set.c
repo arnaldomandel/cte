@@ -21,7 +21,7 @@ Champion_item* champion_set(double max_c, double epsilon) {
   Tau* tau0 = calculate_BIC(0);
   Tau* root = calculate_BIC(max_c);
 
-  Champion_item* champion_set = malloc(sizeof(Champion_item));
+  Champion_item* champion_set = (Champion_item*) malloc(sizeof(Champion_item));
   champion_set->tau = root;
 
   // when tau0 equals to the last put tau in the champion set, all taus have been calculated
@@ -45,7 +45,7 @@ Champion_item* champion_set(double max_c, double epsilon) {
     }
 
     // add a new item, as the head of the champion_set
-    Champion_item* new_item = malloc(sizeof(Champion_item));
+    Champion_item* new_item = (Champion_item*) malloc(sizeof(Champion_item));
     new_item->tau = calculate_BIC(min);
     new_item->next = champion_set;
     champion_set = new_item;

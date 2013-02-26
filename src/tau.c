@@ -26,7 +26,7 @@ void insert_tau_item(Tau* tau, char* string, double prob) {
  * instantiates a new Tau_item
  */
 Tau_item* new_tau_item(char* string, double prob) {
-  Tau_item* tau_item = malloc(sizeof(Tau_item));
+  Tau_item* tau_item = (Tau_item*) malloc(sizeof(Tau_item));
   tau_item->string = string;
   tau_item->probability = prob;
   return tau_item;
@@ -36,7 +36,7 @@ Tau_item* new_tau_item(char* string, double prob) {
  * Allocates and return a new Tau
  */
 Tau* new_Tau() {
-  Tau* tau = malloc(sizeof(Tau));
+  Tau* tau = (Tau*) malloc(sizeof(Tau));
   tau->item = NULL;
   return tau;
 }
