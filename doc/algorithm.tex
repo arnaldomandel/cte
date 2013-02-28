@@ -51,16 +51,81 @@ df(w) = \sum_{a \in A} \chi(wa)
 \subsection{Final Calculation}
 
 
+
 \subsection{Implementation}
 
-The Pre Calculations are implemented in the \emph{bic\_setup.c} file. The Final Calculation in the \emph{bic\_calculation.c} file.
+The population of the trees and the Pre Calculations are implemented in the \emph{bic\_setup.c} file, specifically in the function \emph{setup\_BIC}. The Final Calculation in the \emph{bic\_calculation.c} file, in the function \emph{calculate\_BIC}.
 
-To perform the calculations, data is saved in two trees. The first called Prob Tree holds the letters from the sample in the conventional way, meaning that a child node came in the sample after its parent node. The other three, called Bic Tree, holds letter reversed, the letter from a child node came before the one on its parent node.
+To perform the calculations, data is saved in two trees. The first called Prob Tree holds the letters from the sample in the conventional way, meaning that a child node came in the sample after its parent node. The other three, called Bic Tree, holds letter reversed, the letter from a child node came before the one on its parent node. Both trees are populated by reading every ``$d$'' sized word in the sample. So the filters described in ``Pre Calculations'' are already applied.
 
-Both trees are populated by reading every ``$d$'' sized word in the sample. So the filters described in ``Pre Calculations'' are already applied.
+\subsubsection{Populating the trees}
+
+To populate the Prob Tree, take each sample, on each samples, for each letter, take the word composed by this letter and the ``d + 1'' next letters, where ``d'' is the desired depth, or max size of word, as given in the input.
+
+Take the root node of the Prob Tree as your current node, and get its child node corresponding to the first symbol of the word. Set this node as the current node, add 1 to its number of occurrences and repeat the process, using the current node and the further symbols.
+
+The BIC Tree is populated in the same manner, but the word is read from right to left.
+
+\subsubsection{Pre Calculations}
+
+The Prob Tree is constructed this way so it eases the calculation of the probabilities of each node. The probability of a node ``110'' means $\hat{p}(0|11)$. So to calculate the probability of a node, just take the number of its occurrences and divide by the sum of occurrences of its siblings plus itself. To traverse one node's siblings, go to its father, take its child, which is the first sibling (or in some cases the same node) and then traverse through the siblings pointer.
+
+To calculate the degrees of freedom, just count the number of children one node has. Traversing his children in the same manner used to calculate the probability.
+
+After the degrees of freedom and probabilities are calculated, the $Lw$ can be calculated in a manner close to the calculation of degrees of freedom.
+
+\subsubsection{Final Calculation}
+
+
 
 \section{Champion Tree Set Calculation}
 
+The calculated $\hat{\tau}_{BIC}(X^n_1, c)$ is stable for ranges of c. It is desired to calculate all different trees for the range 0..max where $max > 0$ and $\hat{\tau}_{BIC}(X^n_1, max)$ is the root tree.
+
+\subsection{Implementation}
+
+The champion tree set calculation is implemented in \emph{champion\_set.c}. This module interacts mostly with the \emph{bic.h} interface to calculate each $\hat{\tau}_{BIC}$ and uses the \emph{tau.h} interface to store its data. To calculate each $\hat{\tau}_{BIC}(X^n_1, c)$, this module uses the \emph{calculate\_BIC(c)} in \emph{bic.h}. This function is described in Final Calculation on the previous section.
+
+First it calculates the $\hat{\tau}_{BIC}(X^n_1, 0)$ and $\hat{\tau}_{BIC}(X^n_1, c)$, the later one is stored for the final result.
+
+Then the outer most loop makes sure we calculate other BICs while the last stored $\hat{\tau}_{BIC}$ is different of $\hat{\tau}_{BIC}(X^n_1, 0)$. Whenever this happens, there should not be any more $\hat{\tau}_{BIC}$ to be calculated.
+
+Inside this loop, the next $\hat{\tau}_{BIC}$ is calculated. For that, first the min and max boundaries are set to 0 and the c of the last calculated $\hat{\tau}_{BIC}$ respectively. Here there is an invariant that $\hat{\tau}_{BIC}(X^n_1, min)$ is different from $\hat{\tau}_{BIC}(X^1_n, max)$ and this last one is equals to the last $\hat{\tau}_{BIC}$ stored.
+
+Inside the inner loop, the ``mid'' point as $min + (max - min) / 2$, which is the same as $(min + max) / 2$ but without the risk of overflowing. Then the $\hat{\tau}_{BIC}(X^n_1, mid)$ is calculated. If it is equals to the last stored $\hat{\tau}_{BIC}$, max is set to mid, keeping the invariant valid. If it is different of the last stored $\hat{\tau}_{BIC}$, min is set to mid, also keeping the invariant valid.
+
+This binary search procedure is repeated until $max - min < \epsilon$, when a new $\hat{\tau}_{BIC}(X^n_1, min)$ is calculated and added to the set.
+
+This whole procedure is repeated until the last stored $\hat{\tau}_{BIC}$ is the same as $\hat{\tau}_{BIC}(X^n_1,0)$, when the set is returned.
+
 \section{Bootstrapping}
+
+\subsection{Implementation}
+
+The bootstrapping procedure was divided in resampling and bootstrap calculation.
+
+\subsubsection{Resampling}
+
+First it is needed to find the most frequent word of length ``d''. For that, the Prob Tree is traversed and whenever a node has depth ``d'', it is checked if it occurred more times than the current most frequent. If so, it becomes the current most frequent and search continues. When no more nodes are left, the current most frequent word is returned.
+
+Then the first occurrence of the word is searched on the sample. Then for each occurrence after the first, everything between the last occurrence and the current is added to the $\omega$ set.
+
+
+
+
+\section{Other Implementation Details}
+
+To compile the program, one should run: ``make all'' in the base directory. The compiled program, \emph{cte}, will be in the bin directory, among other test programs.
+
+
+
+\subsection{tree.h}
+
+The calculations are very dependent on the Prob Tree and BIC Tree. The node structure has pointers for its parent, first child and siblings. So to traverse through all children of a node, you follow its child pointer, then follow the sibling pointer while it is not NULL. This representation was chosen for ease of implementation since it is not known beforehand how many children each node will have.
+
+Another detail on trees is that most calculations done on it uses recursion to calculate children and siblings, before or after the calculation of the current node, depending on the necessity of the data to calculate for the current node.
+
+
+ 
 
 \end{document}

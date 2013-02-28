@@ -2,16 +2,16 @@ CFLAGS= -Wall -pedantic -g
 
 all: ../bin/cte bic_calculation_test bic_test kmp_test
 
-../bin/cte: main.o messages.o read_file.o tau.o bic_setup.o bic_calculator.o champion_set.o tree.o
+../bin/cte: main.o messages.o read_file.o tau.o bic_setup.o bic_calculator.o champion_set.o tree.o resample.o kmp.o
 	cc $(CFLAGS) -o $@ $^
 
 bic_calculator.o: bic_calculator.c tau.h tree.h
 bic_setup.o: bic_setup.c bic.h tau.h tree.h
 champion_set.o: champion_set.c tau.h bic.h champion_set.h
-debug.o: debug.c tree.h
 main.o: main.c read_file.h bic.h tau.h champion_set.h
 messages.o: messages.c messages.h
 read_file.o: read_file.c
+resample.o: resample.c bic.h kmp.h messages.h
 tau.o: tau.c tau.h
 tree.o: tree.c tree.h
 
@@ -43,7 +43,7 @@ bic_test: ../bin/bic_test
 test/bic_test.o: test/bic_test.c
 	cc $(CFLAGS) -I . -c -o $@ $^
 
-../bin/bic_test: test/bic_test.o tree.o bic_setup.o test/assert.o
+../bin/bic_test: test/bic_test.o tree.o bic_setup.o test/assert.o bic_calculator.o tau.o
 	cc $(CFLAGS) -I . -o $@ $^
 
 ######################

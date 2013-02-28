@@ -11,7 +11,8 @@
  */
 enum Error_code {
   FILE_NOT_FOUND = 1,
-  WRONG_ARGUMENTS = 2
+  WRONG_ARGUMENTS = 2,
+  UNABLE_TO_RESAMPLE = 3
 };
 
 /*

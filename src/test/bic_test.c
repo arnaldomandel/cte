@@ -6,6 +6,7 @@
 #include "assert.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 extern Tree_node* prob_root;
 extern Tree_node* bic_root;
@@ -65,5 +66,12 @@ int main(int argc, char** args) {
     }
   }
 
+  // checking most common word.
+  {
+    char* word = most_frequent_word();
+    assert_equals_int(2, strlen(word), "Most Frequent Word error\n");
+    assert_equals_int('0', word[0], "Most Frequent Word error\n");
+    assert_equals_int('1', word[1], "Most Frequent Word error\n");
+  }
   printf("Tests completed successfully.\n");
 }

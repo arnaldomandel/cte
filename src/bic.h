@@ -18,4 +18,15 @@ void setup_BIC(char** samples, int depth);
  */
 Tau* calculate_BIC(double c);
 
+/*
+ * Returns the most frequent word from the samples whose length is the max word size.
+ */
+char* most_frequent_word();
+
+/*
+ * Returns the size of the sample used to calculate the BIC.
+ */
+int size_of_sample();
+
+
 #endif /* BIC_H_ */

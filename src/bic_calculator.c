@@ -179,3 +179,41 @@ double recover_prob(char* sufix) {
   }
   return current_node->prob_data->probability;
 }
+
+/*
+ * Returns the child of the given node which occurred the most.
+ * If the depth of the node is max_word_size, then return the node.
+ */
+Tree_node* most_frequent_child(Tree_node* node) {
+  if (node_depth(node) == max_word_size) {
+    return node;
+  }
+
+  int max = 0;
+  Tree_node* max_node;
+  Tree_node* current_node = node->child;
+
+  while (current_node != NULL) {
+    Tree_node* max_child = most_frequent_child(current_node);
+    if (max_child->prob_data != NULL && max_child->prob_data->occurrences > max) {
+      max = max_child->prob_data->occurrences;
+      max_node = max_child;
+    }
+    current_node = current_node->sibling;
+  }
+  return max_node;
+}
+
+/*
+ * Return the most frequent word from the samples whose length is the max word size.
+ */
+char* most_frequent_word() {
+  char* word = (char*) malloc((max_word_size+1)*sizeof(char));
+  Tree_node* max_node = most_frequent_child(prob_root);
+  Tree_node* node = max_node;
+  for (int i = 1; i <= max_word_size; i++) {
+    word[max_word_size-i] = node->symbol;
+    node = node->parent;
+  }
+  return word;
+}

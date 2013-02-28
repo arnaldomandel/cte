@@ -16,6 +16,9 @@ void fatal_error(enum Error_code code) {
     fprintf(stderr, "Wrong number of arguments given.\n");
     usage();
     break;
+  case UNABLE_TO_RESAMPLE:
+    fprintf(stderr, "There was no object in the omega set.\nMost likely the most frequent word appeared only once on the/each sample.\n");
+    break;
   }
 
   exit(code);

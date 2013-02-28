@@ -14,11 +14,11 @@ int main(int argc, char** argv) {
   char** samples = read_lines(argv[1]);
   double c = strtod(argv[2], NULL);
 
-  setup_BIC(samples, 6);
+  setup_BIC(samples, 5);
 
-  Tao* tao = calculate_BIC(c);
+  Tau* tao = calculate_BIC(c);
 
-  Tao_item* item = tao->item;
+  Tau_item* item = tao->item;
   while (item != NULL) {
     printf("%s ", item->string);
     item = item->next;

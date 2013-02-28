@@ -33,14 +33,18 @@ void calculate_probabilities(Tree_node* node);
 void set_degrees_freedom(Tree_node* node);
 void set_probability(Tree_node* node);
 void calculate_Lw(Tree_node* node);
-void set_Lw(Tree_node* node);
-int size_of_sample();
 
 /*
  * Sets up the BIC calculator. Performs the initial calculations that are
  * independent of the C (cost) value.
  */
 void setup_BIC(char** samples, int depth) {
+  if (bic_root != NULL) {
+    free_node(bic_root);
+  }
+  if (prob_root != NULL) {
+    free_node(prob_root);
+  }
   bic_root = (Tree_node*) malloc(sizeof(Tree_node));
   prob_root = (Tree_node*) malloc(sizeof(Tree_node));
   max_word_size = depth;
@@ -127,7 +131,7 @@ void set_degrees_freedom(Tree_node* node) {
   Tree_node* current_node = node->child;
   int df = 0;
   while (current_node != NULL) {
-      df++;
+    df++;
     current_node = current_node->sibling;
   }
   node->prob_data->degrees_freedom = df;
@@ -156,16 +160,7 @@ void calculate_Lw(Tree_node* node) {
   if (node == NULL || node->prob_data == NULL) {
     return;
   }
-  set_Lw(node);
 
-  calculate_Lw(node->child);
-  calculate_Lw(node->sibling);
-}
-
-/*
- * Method that does the math to calculate the Lw
- */
-void set_Lw(Tree_node* node) {
   double value = 1.0f;
   Tree_node* child = node->child;
   while (child != NULL) {
@@ -173,4 +168,8 @@ void set_Lw(Tree_node* node) {
     child = child->sibling;
   }
   node->prob_data->Lw = value;
+
+
+  calculate_Lw(node->child);
+  calculate_Lw(node->sibling);
 }
