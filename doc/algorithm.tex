@@ -120,7 +120,7 @@ Implemented in file \emph{bootstrap.c}. The bootstrap function will cycle throug
 
 Calculation of $\Delta^{(\tau_i,\tau_{i+1})}(n_x,b)$ is done by the \emph{delta\_tau} function. It delegates the calculation of the $L_w$ to the \emph{bic\_setup} function, used earlier for the Pre Calculations step. Then it delegates the calculation of the $L_\tau$ to the \emph{L\_tau} function, which is implemented in the \emph{bic\_setup.c} file. With these results, the \emph{delta\_tau} function finishes the calculations and returns the result.
 
-Unfortunately, $L_\tau(X^n_1)$ usually returns very small values, in the range of $10^{-300}$ to $10^{-100}$. Then $\log L_\tau(X^n_1)$ approaches minus infinity.
+Unfortunately, $L_\tau(X^n_1)$ usually returns very small values, in the range of $10^{-300}$ to $10^{-100}$. Then $\log L_\tau(X^n_1)$ approaches minus infinity, which can't be calculated using C's double precision floating point numbers. And every calculation after that returns nan (not a number).
 
 
 \section{Other Implementation Details}
@@ -144,5 +144,7 @@ In C, there is no way to read a complete line regardless of its size. The only w
 So whenever each part of a sample is read, it goes to a buffer, the size of the buffer is read, then more memory is added to a string onto which the buffer will be concatenated.
 
 This prevents lines from having a maximum size and allocating more memory than necessary to accommodate the sample.
+
+
 
 \end{document}
