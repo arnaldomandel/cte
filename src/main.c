@@ -9,6 +9,7 @@
 #include "champion_set.h"
 #include "resample.h"
 #include "bootstrap.h"
+#include "messages.h"
 
 #include <stdio.h>
 #include <stddef.h>
@@ -23,6 +24,9 @@
  * Then runs the bootstrap method to return the selected Context Tree.
  */
 int main(int argc, char** args) {
+  if (argc != 8) {
+    fatal_error(WRONG_ARGUMENTS);
+  }
   char* filename = args[1];
   int depth = atoi(args[2]);
   double max_c = strtod(args[3], NULL);

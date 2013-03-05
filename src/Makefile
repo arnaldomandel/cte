@@ -8,7 +8,7 @@ all: ../bin/cte bic_calculation_test bic_test kmp_test
 bic_calculator.o: bic_calculator.c tau.h tree.h
 bic_setup.o: bic_setup.c bic.h tau.h tree.h
 champion_set.o: champion_set.c tau.h bic.h champion_set.h
-main.o: main.c read_file.h bic.h tau.h champion_set.h bootstrap.h
+main.o: main.c read_file.h bic.h tau.h champion_set.h bootstrap.h messages.h
 messages.o: messages.c messages.h
 read_file.o: read_file.c
 resample.o: resample.c bic.h kmp.h messages.h
