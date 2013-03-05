@@ -7,6 +7,7 @@
 #include "champion_set.h"
 
 #include <stdlib.h>
+#include <stddef.h>
 
 //remove
 #include <stdio.h>
@@ -23,6 +24,7 @@ Champion_item* champion_set(double max_c, double epsilon) {
 
   Champion_item* champion_set = (Champion_item*) malloc(sizeof(Champion_item));
   champion_set->tau = root;
+  champion_set->next = NULL;
 
   // when tau0 equals to the last put tau in the champion set, all taus have been calculated
   while(!equals_Tau(tau0, champion_set->tau)) {

@@ -4,6 +4,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <math.h>
+#include <string.h>
 
 #include "tau.h"
 #include "tree.h"
@@ -216,4 +217,27 @@ char* most_frequent_word() {
     node = node->parent;
   }
   return word;
+}
+
+/*
+ * Calculates Ltau on the current Prob Tree
+ */
+double L_tau(Tau* tau) {
+  double value = 1.0;
+  Tau_item* item = tau->item;
+  while (item != NULL) {
+
+    char* word = item->string;
+    int word_length = strlen(word);
+    // go down the tree to find the correct node
+    Tree_node* node = prob_root;
+    for (int i = 0; i < word_length; i++) {
+      node = get_child_node(node, word[i]);
+    }
+    if (node != NULL) {
+      value *= node->prob_data->Lw;
+    }
+    item = item->next;
+  }
+  return value;
 }

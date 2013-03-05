@@ -45,8 +45,8 @@ void setup_BIC(char** samples, int depth) {
   if (prob_root != NULL) {
     free_node(prob_root);
   }
-  bic_root = (Tree_node*) malloc(sizeof(Tree_node));
-  prob_root = (Tree_node*) malloc(sizeof(Tree_node));
+  bic_root = new_Tree_node();
+  prob_root = new_Tree_node();
   max_word_size = depth;
 
   for (int i = 0; samples[i] != NULL; i++) {

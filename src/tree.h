@@ -67,4 +67,11 @@ Tree_node* get_child_node(Tree_node* parent, char symbol);
  */
 void free_node(Tree_node* node);
 
+
+/*
+ * Instantiates a new Tree_node and set its default values
+ */
+Tree_node* new_Tree_node();
+
+
 #endif /* TREE_H_ */

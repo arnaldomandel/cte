@@ -29,4 +29,11 @@ char* most_frequent_word();
 int size_of_sample();
 
 
+
+/*
+ * Calculates Ltau on the current Prob Tree
+ */
+double L_tau(Tau* tau);
+
+
 #endif /* BIC_H_ */

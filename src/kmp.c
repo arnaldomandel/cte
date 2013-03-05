@@ -54,8 +54,10 @@ int kmp(char* source, int init, char* match) {
 
   while (m + i < source_length) {
     if (match[i] == source[m + i]) {
-      if (i == match_length - 1)
+      if (i == match_length - 1) {
+        free(t);
         return m;
+      }
       i++;
     } else {
       m = m + i - t[i];
@@ -66,6 +68,7 @@ int kmp(char* source, int init, char* match) {
       }
     }
   }
+  free(t);
   // if we reach here, we have searched all of S unsuccessfully
   return -1;
 }

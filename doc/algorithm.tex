@@ -52,6 +52,7 @@ df(w) = \sum_{a \in A} \chi(wa)
 
 
 
+
 \subsection{Implementation}
 
 The population of the trees and the Pre Calculations are implemented in the \emph{bic\_setup.c} file, specifically in the function \emph{setup\_BIC}. The Final Calculation in the \emph{bic\_calculation.c} file, in the function \emph{calculate\_BIC}.
@@ -76,7 +77,9 @@ After the degrees of freedom and probabilities are calculated, the $Lw$ can be c
 
 \subsubsection{Final Calculation}
 
+This part of the BIC tree calculation depends on a cost (or penalty). Whereas the pre calculations and independent of cost and thus are calculated only once, the final calculation is called many times, to discover the champion tree set. Each time it is called, a different cost is given.
 
+This calculation is implemented in the \emph{bic\_calculator.c} file. First thing it does is calculate the $V_w(X^n_1)$ and $\delta_w(X^n_1)$. Then it does a depth search in the BIC tree, searching for a node with $\delta_w(X^n_1) = 0$. The word represented by this node is added to the tree, its children are ignored and the search continues on siblings and other nodes. The children of such a node can be ignored because they will have a suffix with $\delta_w(X^n_1) = 0$, which are meant to be discarded.
 
 \section{Champion Tree Set Calculation}
 
@@ -108,9 +111,16 @@ The bootstrapping procedure was divided in resampling and bootstrap calculation.
 
 First it is needed to find the most frequent word of length ``d''. For that, the Prob Tree is traversed and whenever a node has depth ``d'', it is checked if it occurred more times than the current most frequent. If so, it becomes the current most frequent and search continues. When no more nodes are left, the current most frequent word is returned.
 
-Then the first occurrence of the word is searched on the sample. Then for each occurrence after the first, everything between the last occurrence and the current is added to the $\omega$ set.
+Then the first occurrence of the word is searched on the sample. Then for each occurrence after the first, everything between the last occurrence and the current is added to the $\omega$ set. To search for the word in the sample, a version of the Knuth-Morris-Pratt algorithm was implemented at \emph{kmp.c}. There is an addition that is the initial index to start the search, so the second and next occurrences can be searched.
 
 
+\subsubsection{Bootstrap calculation}
+
+Implemented in file \emph{bootstrap.c}. The bootstrap function will cycle through the trees checking if they pass the t-student test by supplying the \emph{accept\_tree} function. The \emph{accept\_tree} function delegates the calculation of $\Delta^{(\tau_i,\tau_{i+1})}(n_x,b)$ then calculates $t_{B-1}$ which is to be checked with the t-student test. This check is not implemented, so the \emph{accept\_tree} function prints the $t_{B-1}$ value and returns false, so the \emph{bootstrap} function resumes calculation for the next tree.
+
+Calculation of $\Delta^{(\tau_i,\tau_{i+1})}(n_x,b)$ is done by the \emph{delta\_tau} function. It delegates the calculation of the $L_w$ to the \emph{bic\_setup} function, used earlier for the Pre Calculations step. Then it delegates the calculation of the $L_\tau$ to the \emph{L\_tau} function, which is implemented in the \emph{bic\_setup.c} file. With these results, the \emph{delta\_tau} function finishes the calculations and returns the result.
+
+Unfortunately, $L_\tau(X^n_1)$ usually returns very small values, in the range of $10^{-300}$ to $10^{-100}$. Then $\log L_\tau(X^n_1)$ approaches minus infinity.
 
 
 \section{Other Implementation Details}
@@ -125,7 +135,14 @@ The calculations are very dependent on the Prob Tree and BIC Tree. The node stru
 
 Another detail on trees is that most calculations done on it uses recursion to calculate children and siblings, before or after the calculation of the current node, depending on the necessity of the data to calculate for the current node.
 
-
+\subsection{read\_file.c}
  
+In \emph{read\_file.c} is the implementation of the sample reading algorithm.
+
+In C, there is no way to read a complete line regardless of its size. The only way is to use the \emph{fgets} functions which will write to a buffer up till it finds a line break (``/n'') or up to a given number of characters have been read.
+
+So whenever each part of a sample is read, it goes to a buffer, the size of the buffer is read, then more memory is added to a string onto which the buffer will be concatenated.
+
+This prevents lines from having a maximum size and allocating more memory than necessary to accommodate the sample.
 
 \end{document}

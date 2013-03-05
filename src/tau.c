@@ -29,6 +29,7 @@ Tau_item* new_tau_item(char* string, double prob) {
   Tau_item* tau_item = (Tau_item*) malloc(sizeof(Tau_item));
   tau_item->string = string;
   tau_item->probability = prob;
+  tau_item->next = NULL;
   return tau_item;
 }
 
@@ -107,11 +108,9 @@ int equals_Tau(Tau* t1, Tau* t2) {
  */
 void print_Tau(Tau* tau) {
   Tau_item* item = tau->item;
-  printf("c=%f Tree=", tau->c);
   while (item != NULL) {
 //    printf("%s(%f) ", item->string, item->probability);
     printf("%s ", item->string);
     item = item->next;
   }
-  printf("\n");
 }

@@ -8,6 +8,7 @@
 #include "tau.h"
 #include "champion_set.h"
 #include "resample.h"
+#include "bootstrap.h"
 
 #include <stdio.h>
 #include <stddef.h>
@@ -22,7 +23,6 @@
  * Then runs the bootstrap method to return the selected Context Tree.
  */
 int main(int argc, char** args) {
-
   char* filename = args[1];
   int depth = atoi(args[2]);
   double max_c = strtod(args[3], NULL);
@@ -32,16 +32,27 @@ int main(int argc, char** args) {
   int number_resamples = atoi(args[7]);
 
   char** sample = read_lines(filename);
-  setup_BIC(sample, depth);
-  Champion_item* champion_bics = champion_set(max_c, epsilon);
+  setup_BIC(sample, depth); // pre calculations
+  Champion_item* champion_bics = champion_set(max_c, epsilon); // champions set calculation
+
+  printf("Champion set:\n");
+  Champion_item* champion_item = champion_bics;
+  while (champion_item != NULL) {
+    printf("c=%f tree=[", champion_item->tau->c);
+    print_Tau(champion_item->tau);
+    printf("]\n");
+    champion_item = champion_item->next;
+  }
+
+
 
   char* word_most_frequent = most_frequent_word();
   char** resamples = resample(sample, word_most_frequent, size_resample1, size_resample2, number_resamples);
   free(word_most_frequent);
   free_lines(sample);
 
-  for (int i = 0; i < 2*number_resamples; i++) {
-    printf("%s\n", resamples[i]);
-  }
+
+  printf("\nBootstrap starting\n");
+  bootstrap(resamples, champion_bics, depth, number_resamples, 0.1);
 
 }

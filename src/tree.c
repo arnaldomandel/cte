@@ -28,6 +28,7 @@ Tree_node* get_create_node_child(Tree_node* parent, char symbol, int type) {
   Tree_node* new_node = create_node_child(parent, symbol, type);
   new_node->sibling = parent->child;
   parent->child = new_node;
+
   return new_node;
 }
 
@@ -35,7 +36,7 @@ Tree_node* get_create_node_child(Tree_node* parent, char symbol, int type) {
  * Creates a node and associates the given node as its parent and the given symbol as its own.
  */
 Tree_node* create_node_child(Tree_node* parent, char symbol, int type) {
-  Tree_node* child = (Tree_node*) malloc(1*sizeof(Tree_node));
+  Tree_node* child = new_Tree_node();
   child->symbol = symbol;
   child->parent = parent;
 
@@ -72,10 +73,26 @@ void free_node(Tree_node* node) {
  * Searches for a node with the given symbol among the child of the given node.
  */
 Tree_node* get_child_node(Tree_node* parent, char symbol) {
+  if (parent == NULL) {
+    return NULL;
+  }
   // walk through every child node, until we find a corresponding symbol, or stop at last node
   Tree_node* current_node = parent->child;
   while(current_node != NULL && current_node->symbol != symbol) {
     current_node = current_node->sibling;
   }
   return current_node;
+}
+
+/*
+ * Instantiates a new Tree_node and set its default values
+ */
+Tree_node* new_Tree_node() {
+  Tree_node* node = (Tree_node*) malloc(sizeof(Tree_node));
+  node->child = NULL;
+  node->sibling = NULL;
+  node->parent = NULL;
+  node->prob_data = NULL;
+  node->bic_data = NULL;
+  return node;
 }
