@@ -12,8 +12,9 @@ typedef struct tau Tau;
 typedef struct tau_item Tau_item;
 
 struct tau {
-  Tau_item* item;
-  double c;
+    Tau_item* item, *last;
+    double c;
+    double L;
 };
 
 struct tau_item {
@@ -49,5 +50,7 @@ int equals_Tau(Tau* t1, Tau* t2);
  * Prints the Tau to the stdout.
  */
 void print_Tau(Tau* tau);
+void pprint_Tau(Tau* tau);
+
 
 #endif /* TAO_H_ */

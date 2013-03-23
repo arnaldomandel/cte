@@ -8,7 +8,7 @@
 
 #include "tau.h"
 #include "tree.h"
-
+#include "list.h"
 
 /*
  * these variables are defined in bic_setup.c
@@ -17,6 +17,7 @@ extern int max_word_size;
 extern Tree_node* prob_root;
 extern Tree_node* bic_root;
 extern int sample_size;
+extern double logN;
 
 
 /*
@@ -27,15 +28,15 @@ Tree_node* get_prob_node(Tree_node* bic_node);
 void add_selected_words_to_tau(Tree_node* node, Tau* tau);
 char* recover_sufix(Tree_node* bic_node);
 double recover_prob(char* sufix);
-void VwSw(Tree_node* bic_node, double c);
-double Vw1(Tree_node* node, Tree_node* prob_node, double c);
-double Vw2(Tree_node* node, double c);
+void get_v(Tree_node* bic_node, double c);
+double node_part(Tree_node* node, Tree_node* prob_node, double c);
+double children_part(Tree_node* node, double c);
 
 /*
  * Calculates the BIC given the penalty c.
  */
 Tau* calculate_BIC(double c) {
-  VwSw(bic_root->child, c);
+  get_v(bic_root->child, c);
   Tau* tau = new_Tau();
   tau->c = c;
   add_selected_words_to_tau(bic_root->child, tau);
@@ -43,63 +44,61 @@ Tau* calculate_BIC(double c) {
 }
 
 /*
- * Calculates the Vw and Sw values for a node, siblings and children.
+ * Calculates v values for a node, siblings and children, and decide if critical.
  */
-void VwSw(Tree_node* bic_node, double c) {
+void get_v(Tree_node* bic_node, double c) {
   if (bic_node == NULL || bic_node->bic_data == NULL) {
     return;
   }
   Tree_node* prob_node = get_prob_node(bic_node);
 
-  // if node has no child, we use the Vw1 value.
+  // if node has no child, we use the node_part.
   if (node_depth(bic_node) == max_word_size || bic_node->child == NULL) {
-    bic_node->bic_data->Sw = 0;
-    bic_node->bic_data->Vw = Vw1(bic_node, prob_node, c);
-    VwSw(bic_node->sibling, c); // calculate siblings before returning
+    bic_node->bic_data->critical = 0;
+    bic_node->bic_data->v = node_part(bic_node, prob_node, c);
+    get_v(bic_node->sibling, c); // calculate siblings before returning
     return;
   }
 
-  // calculate child, because it is needed for Vw2 calculation.
-  VwSw(bic_node->child, c);
+  // calculate child, because it is needed for children_part calculation.
+  get_v(bic_node->child, c);
 
-  double vw1 = Vw1(bic_node, prob_node, c);
-  double vw2 = Vw2(bic_node, c);
+  double n_p = node_part(bic_node, prob_node, c);
+  double c_p = children_part(bic_node, c);
 
-  if (vw1 >= vw2) {
-    bic_node->bic_data->Sw = 0;
-    bic_node->bic_data->Vw = vw1;
+  // critical is the opposite of delta
+  if (c_p > n_p) {
+    bic_node->bic_data->critical = 0;
+    bic_node->bic_data->v = c_p;
   } else {
-    bic_node->bic_data->Sw = 1;
-    bic_node->bic_data->Vw = vw2;
+    bic_node->bic_data->critical = 1;
+    bic_node->bic_data->v = n_p;
   }
 
   // calculate siblings before returning
-  VwSw(bic_node->sibling, c);
+  get_v(bic_node->sibling, c);
 }
 
 /*
- * Calculates n^{-cdf(w)}Lw(X) for a given node.
- * Either this or the value returned by Vw2 will become the Vw value.
+ * Calculates log( n^{-cdf(w)}Lw(X)) for a given node.
+ * Either this or the value returned by children_part will become the v value.
  */
-double Vw1(Tree_node* bic_node, Tree_node* prob_node, double c) {
-  double Lw = prob_node->prob_data->Lw;
-  double power = c * prob_node->prob_data->degrees_freedom;
-  double n_to_cdf = pow(sample_size, -power);
-  return n_to_cdf * Lw;
+double node_part(Tree_node* bic_node, Tree_node* prob_node, double c) {
+  return prob_node->prob_data->ell - c * prob_node->prob_data->degrees_freedom * logN;
 }
 
 /*
- * Calculates \prod_{a \in A} V_{aw}(X) for a given node.
- * Either this or the value returned by Vw1 will become the Vw value.
+ * Calculates \sum_{a \in A} V_{aw}(X) for a given node.
+ * Either this or the value returned by node_part will become the v value.
  */
-double Vw2(Tree_node* node, double c) {
-  double vw2 = 1.0;
-  Tree_node* current_child = node->child;
-  while (current_child != NULL) {
-    vw2 *= current_child->bic_data->Vw;
-    current_child = current_child->sibling;
-  }
-  return vw2;
+double children_part(Tree_node* node, double c) {
+
+  double part = 0;
+  
+  // for (Tree_node* current_child = node->child; current_child != NULL; current_child = current_child->sibling)
+  ITERA(Tree_node*, current_child, node->child, sibling)
+     part += current_child->bic_data->v;
+  return part;
 }
 
 
@@ -110,11 +109,9 @@ double Vw2(Tree_node* node, double c) {
  */
 int node_depth(Tree_node* node) {
   int depth = -1;
-  Tree_node* current_node = node;
-  while (current_node != NULL) {
-    depth++;
-    current_node = current_node->parent;
-  }
+  //for (Tree_node* current_node = node; current_node != NULL; current_node = current_node->parent)
+  ITERA(Tree_node*, current_node, node, parent)
+      depth++;
   return depth;
 }
 
@@ -123,11 +120,10 @@ int node_depth(Tree_node* node) {
  */
 Tree_node* get_prob_node(Tree_node* bic_node) {
   Tree_node* prob_node = prob_root;
-  Tree_node* parent_node = bic_node;
-  while (parent_node != bic_root) {
+  
+  for (Tree_node* parent_node = bic_node; parent_node != bic_root; parent_node = parent_node->parent)
     prob_node = get_child_node(prob_node, parent_node->symbol);
-    parent_node = parent_node->parent;
-  }
+  
   return prob_node;
 }
 
@@ -140,14 +136,15 @@ void add_selected_words_to_tau(Tree_node* node, Tau* tau) {
   if(node == NULL) {
     return;
   }
-  if (node->bic_data->Sw == 1) {
-    //this node is not selected, but it's children may
-    add_selected_words_to_tau(node->child, tau);
-  } else {
+  if (node->bic_data->critical) {
     // this node is selected, must add it to the tau and there is no need to check its children
     char* sufix = recover_sufix(node);
     double prob = recover_prob(sufix);
     insert_tau_item(tau, sufix, prob);
+    tau->L += node->bic_data->v;
+  } else {
+    //this node is not selected, but it's children may
+    add_selected_words_to_tau(node->child, tau);
   }
 
   // but we must always check siblings
@@ -223,21 +220,15 @@ char* most_frequent_word() {
  * Calculates Ltau on the current Prob Tree
  */
 double L_tau(Tau* tau) {
-  double value = 1.0;
-  Tau_item* item = tau->item;
-  while (item != NULL) {
-
-    char* word = item->string;
-    int word_length = strlen(word);
+  double value = 0;
+  for(Tau_item* item = tau->item; item != NULL; item = item->next) {
     // go down the tree to find the correct node
     Tree_node* node = prob_root;
-    for (int i = 0; i < word_length; i++) {
-      node = get_child_node(node, word[i]);
-    }
-    if (node != NULL) {
-      value *= node->prob_data->Lw;
-    }
-    item = item->next;
+    for (char* symbol = item->string; symbol; symbol++)
+      node = get_child_node(node, *symbol);
+
+    if (node != NULL)
+      value += node->prob_data->ell;
   }
   return value;
 }

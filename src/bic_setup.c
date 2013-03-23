@@ -8,14 +8,18 @@
 
 #include "bic.h"
 #include "tree.h"
+#include "list.h"
 
 int max_word_size;
 int sample_size;
+double logN;
 
 /*
  * We use 2 trees to calculate the BIC.
  * The prob_root tree is the one that holds the occurences, probabilities, degrees of freedom and Lw(X).
+    In prefix order, necessary for conditional probabilities
  * The bic_root tree is the one on which the Vw(X) and Sw(X) (DELTAw(X))
+    In suffix order, for computing tau
  * In the PROB tree, the probability of a node "0101" means p(1|010).
  * In the Prob tree nodes are stored in the conventional order.
  * From the roots, and its childs root->0->0->1 means that the string 001 occurred in the sample.
@@ -32,7 +36,7 @@ void insert_sample(char* sample);
 void calculate_probabilities(Tree_node* node);
 void set_degrees_freedom(Tree_node* node);
 void set_probability(Tree_node* node);
-void calculate_Lw(Tree_node* node);
+void calculate_ell(Tree_node* node);
 
 /*
  * Sets up the BIC calculator. Performs the initial calculations that are
@@ -45,17 +49,25 @@ void setup_BIC(char** samples, int depth) {
   if (prob_root != NULL) {
     free_node(prob_root);
   }
-  bic_root = new_Tree_node();
-  prob_root = new_Tree_node();
+  bic_root = Tree_create(BIC);
+  
+  
+  // bic_root->bic_data = (Bic_data*) calloc(1, sizeof(Bic_data));
+  
+  prob_root = Tree_create(PROB); //new_Tree_node();
+  // prob_root->prob_data = (Prob_data*) calloc(1, sizeof(Prob_data));
   max_word_size = depth;
 
+  
   for (int i = 0; samples[i] != NULL; i++) {
     insert_sample(samples[i]);
   }
   sample_size = size_of_sample();
-
+  logN = log(sample_size);
+  
+  
   calculate_probabilities(prob_root->child);
-  calculate_Lw(prob_root->child);
+  calculate_ell(prob_root->child);
 }
 
 /*
@@ -67,10 +79,12 @@ void insert_sample(char* sample) {
   // first iteration to create the probability tree
   for (int i = 0; sample[i] != '\0'; i++) {
     Tree_node* current_node = prob_root;
+    prob_root->prob_data->occurrences++;
+    
     // besides iterating on each letter, we use this second for to iterate on words
     // the stop condition uses max_word_size + 1 so we create an extra height, which is used for calculations
     for (int d = 0; d < max_word_size + 1 && d + i < sample_length; d++) {
-      current_node = get_create_node_child(current_node, sample[i+d], PROB);
+      current_node = get_create_child_node(current_node, sample[i+d], PROB);
       current_node->prob_data->occurrences++;
     }
   }
@@ -80,21 +94,22 @@ void insert_sample(char* sample) {
     Tree_node* current_node = bic_root;
     // besides iterating on each letter, we use this second for to iterate on words
     for (int d = 0; d < max_word_size && i - d >= 0; d++) {
-      current_node = get_create_node_child(current_node, sample[i-d], BIC);
+      current_node = get_create_child_node(current_node, sample[i-d], BIC);
     }
   }
 }
 
 /*
- * Calculates the size of the samples, as the sum of Xn(a) for every a in the alphabet.
+ * Calculates the size of the samples, as the total number of occurrences of length 1 words
  */
 int size_of_sample() {
+
   int n = 0;
-  Tree_node* current_node = prob_root->child;
-  while (current_node != NULL) {
-    n += current_node->prob_data->occurrences;
-    current_node = current_node->sibling;
-  }
+
+  //for  (Tree_node* current_node = prob_root->child; current_node != NULL; current_node = current_node->sibling) 
+  ITERA(Tree_node*, current_node, prob_root->child, sibling)
+      n += current_node->prob_data->occurrences;
+
   return n;
 }
 
@@ -127,20 +142,20 @@ void set_degrees_freedom(Tree_node* node) {
     return;
   }
 
-  // df is the number os childs a node has (that appeared in the sample), the same as degrees of freedom
-  Tree_node* current_node = node->child;
+  // df is the number of children a node has (that appeared in the sample), not the same as degrees of freedom
   int df = 0;
-  while (current_node != NULL) {
-    df++;
-    current_node = current_node->sibling;
-  }
+  // for (Tree_node* current_node = node->child; current_node != NULL; current_node = current_node->sibling)
+  ITERA(Tree_node*, current_node, node->child, sibling)
+      df++;
+
   node->prob_data->degrees_freedom = df;
 }
 
 /*
- * Calculates the probability for the current node.
+ * Calculates the probability for the current node, given the father.
  * If current node corresponds to "100", the corresponding probability is p(0|10)
  */
+/* This is exact 
 void set_probability(Tree_node* node) {
   int sum_occurrences = 0;
   Tree_node* current_node = node->parent->child;
@@ -150,26 +165,33 @@ void set_probability(Tree_node* node) {
   }
   node->prob_data->probability = node->prob_data->occurrences / (double) sum_occurrences;
 }
+*/
+
+/* will very slightly underestimate if parent is a suffix of the sample and is infrequent */ 
+void set_probability(Tree_node* node) {
+    node->prob_data->probability = node->prob_data->occurrences / (double) node->parent->prob_data->occurrences;
+}
+
 
 
 /*
  * Method that calculates the Lw for the given node, its siblings and childs.
  */
-void calculate_Lw(Tree_node* node) {
+void calculate_ell(Tree_node* node) {
   // defense against null node, prob-data
   if (node == NULL || node->prob_data == NULL) {
     return;
   }
 
-  double value = 1.0f;
-  Tree_node* child = node->child;
-  while (child != NULL) {
-    value *= pow(child->prob_data->probability, child->prob_data->occurrences);
-    child = child->sibling;
-  }
-  node->prob_data->Lw = value;
+  double value = 0;
+
+  // for (Tree_node* child = node->child; child != NULL; child = child->sibling)
+  ITERA(Tree_node*, current_node, node->child, sibling)
+      value += current_node->prob_data->occurrences*log(current_node->prob_data->probability);
+
+  node->prob_data->ell = value;
 
 
-  calculate_Lw(node->child);
-  calculate_Lw(node->sibling);
+  calculate_ell(node->child);
+  calculate_ell(node->sibling);
 }

@@ -3,6 +3,7 @@
  */
 
 #include "tau.h"
+#include "list.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stddef.h>
@@ -16,11 +17,26 @@ Tau_item* new_tau_item(char* string, double prob);
 /*
  * Inserts a new Tau_item in the given Tau.
  */
+
+/* 
+ * void insert_tau_item(Tau* tau, char* string, double prob) {
+ *   Tau_item* new_item = new_tau_item(string, prob);
+ *   new_item->next = tau->item;
+ *   tau->item = new_item;
+ * }
+ */
+
+/*
+ * Inserts a new Tau_item at the end of the given Tau, so that strings are in revlex order
+ */
 void insert_tau_item(Tau* tau, char* string, double prob) {
-  Tau_item* new_item = new_tau_item(string, prob);
-  new_item->next = tau->item;
-  tau->item = new_item;
+    Tau_item* new_item = new_tau_item(string, prob);
+    if(tau->item)
+	tau->last = tau->last->next = new_item;
+    else
+	tau->last = tau->item = new_item;
 }
+
 
 /*
  * instantiates a new Tau_item
@@ -38,7 +54,8 @@ Tau_item* new_tau_item(char* string, double prob) {
  */
 Tau* new_Tau() {
   Tau* tau = (Tau*) malloc(sizeof(Tau));
-  tau->item = NULL;
+  tau->last = tau->item = NULL;
+  tau->L = 0;
   return tau;
 }
 
@@ -63,12 +80,11 @@ void free_Tau(Tau* t) {
  */
 int items_in_Tau(Tau* t) {
   int items = 0;
-  Tau_item* item = t->item;
 
-  while (item != NULL) {
+  // while (item != NULL) {
+  ITERA(Tau_item*, item, t->item, next)
     items++;
-    item = item->next;
-  }
+
   return items;
 }
 
@@ -77,6 +93,7 @@ int items_in_Tau(Tau* t) {
  * Supposes there are no repeated words in the taus (as there shouldn't).
  * Ignores the c to which the Tau was calculated.
  */
+/*
 int equals_Tau(Tau* t1, Tau* t2) {
   // if they dont have the same number of items, they are different
   if (items_in_Tau(t1) != items_in_Tau(t2)) {
@@ -102,15 +119,45 @@ int equals_Tau(Tau* t1, Tau* t2) {
   }
   return 1;
 }
+*/
+
+/* 
+ * Verifies whether the two taus are equal.  Since tau is an ordered 
+ * list of strings, a simple element by element comparison suffices.
+ */
+int equals_Tau(Tau* t1, Tau* t2) {
+    Tau_item *p1, *p2;
+    for(p1=t1->item, p2=t2->item; p1 && p2; p1=p1->next, p2=p2->next)
+	if(strcmp(p1->string, p2->string))
+	    return 0;  // they differ
+    return !p1 && !p2;  // true if at the end of both
+}
+
+     
 
 /*
  * Prints the given Tau to stdout.
  */
 void print_Tau(Tau* tau) {
-  Tau_item* item = tau->item;
-  while (item != NULL) {
+    // for (Tau_item* item = tau->item; item != NULL; item = item->next)
+    ITERA(Tau_item*, item, tau->item, next)
+	printf("%s ", item->string);
 //    printf("%s(%f) ", item->string, item->probability);
-    printf("%s ", item->string);
-    item = item->next;
-  }
 }
+
+void pprint_Tau(Tau* tau) {
+    Tau_item* item;
+    int siz = 0, l;
+
+    // finds max length for pretty printing suffixes 
+    ITERA(, item, tau->item, next)
+	if ( siz < ( l = strlen(item->string) ) )
+	     siz = l;
+
+    printf("[%f]\n", tau->L);
+    // for (item = tau->item; item != NULL; item = item->next)  
+    ITERA(, item, tau->item, next)
+	printf("%*s\n", siz, item->string);
+}
+
+	     

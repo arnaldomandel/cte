@@ -2,7 +2,7 @@
  * Test for tree.c
  */
 
-#include "tree.h"
+#include "../tree.h"
 #include "assert.h"
 
 #include <stdio.h>
@@ -17,13 +17,13 @@
  */
 int main(int argc, char** args) {
   Tree_node* root = (Tree_node*) malloc(sizeof(Tree_node));
-  Tree_node* child1 = get_create_node_child(root, '1', PROB);
-  Tree_node* child2 = get_create_node_child(root, '2', PROB);
-  Tree_node* grandchild11 = get_create_node_child(child1, '1', PROB);
-  get_create_node_child(child1, '2', PROB); // we create this grandchild just to test
+  Tree_node* child1 = get_create_child_node(root, '1', PROB);
+  Tree_node* child2 = get_create_child_node(root, '2', PROB);
+  Tree_node* grandchild11 = get_create_child_node(child1, '1', PROB);
+  get_create_child_node(child1, '2', PROB); // we create this grandchild just to test
 
-  Tree_node* test_get_child1 = get_create_node_child(root, '1', PROB);
-  Tree_node* test_get_child2 = get_create_node_child(root, '2', PROB);
+  Tree_node* test_get_child1 = get_create_child_node(root, '1', PROB);
+  Tree_node* test_get_child2 = get_create_child_node(root, '2', PROB);
 
 
   assert_equals(child1, test_get_child1, "Error, child 1 was not properly retrieved.");
@@ -34,8 +34,8 @@ int main(int argc, char** args) {
 
   assert_equals(child2->parent, root, "Parent for child2 not properly assigned.");
 
-  Tree_node* current_node = get_create_node_child(root, '1', PROB);
-  current_node = get_create_node_child(current_node, '1', PROB);
+  Tree_node* current_node = get_create_child_node(root, '1', PROB);
+  current_node = get_create_child_node(current_node, '1', PROB);
 
   assert_equals(current_node, grandchild11, "Grandchild not properly retrieved.");
 

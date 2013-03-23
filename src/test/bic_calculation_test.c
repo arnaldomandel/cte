@@ -4,8 +4,13 @@
 #include "read_file.h"
 #include "bic.h"
 #include "assert.h"
+#include "tree.h"
 #include <stdio.h>
 #include <stdlib.h>
+
+
+extern Tree_node* prob_root;
+extern Tree_node* bic_root;
 
 /*
  * Test the result for the bic calculator.
@@ -15,13 +20,12 @@ int main(int argc, char** argv) {
   double c = strtod(argv[2], NULL);
 
   setup_BIC(samples, 5);
+  print_tree(prob_root, "");
 
+  
   Tau* tao = calculate_BIC(c);
+  print_tree(bic_root, "");
 
-  Tau_item* item = tao->item;
-  while (item != NULL) {
-    printf("%s ", item->string);
-    item = item->next;
-  }
-  printf("\n");
+  pprint_Tau(tao);
+  
 }

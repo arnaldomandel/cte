@@ -20,15 +20,15 @@ struct prob_data {
   int occurrences; //on sample
   double probability;
   int degrees_freedom;
-  double Lw;
+  double ell;
 };
 
 /*
  * structure that holds the data used to calculate a BIC tree.
  */
 struct bic_data {
-  double Vw;
-  int Sw; // actually DELTAw
+  double v;
+  int critical;
 };
 
 enum node_type {
@@ -54,7 +54,7 @@ struct tree_node {
  * If such a child does not exits, then this method creates one and returns it.
  * If the child is created, it will also allocate space to one of the data structures (Prob_data or Bic_data) according to the given type.
  */
-Tree_node* get_create_node_child(Tree_node* parent, char symbol, int type);
+Tree_node* get_create_child_node(Tree_node* parent, char symbol, int type);
 
 /*
  * Return the child of the given node that is related to the symbol from the alphabet.
@@ -72,6 +72,15 @@ void free_node(Tree_node* node);
  * Instantiates a new Tree_node and set its default values
  */
 Tree_node* new_Tree_node();
+
+/* 
+ * Creates an empty tree
+ */ 
+Tree_node* Tree_create(int type);
+
+
+
+void print_tree(Tree_node* tree, char* given_label);
 
 
 #endif /* TREE_H_ */

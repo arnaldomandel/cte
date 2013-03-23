@@ -1,5 +1,5 @@
 CC= c99
-CFLAGS= -Wall -g
+CFLAGS= -Wall -g -I..
 LDFLAGS= -lm
 
 all: ../bin/cte bic_calculation_test bic_test kmp_test
@@ -76,8 +76,5 @@ test/kmp_test.o: test/kmp_test.c
 champ_test: ../bin/champ_test
 
 
-test/champ_test.o: test/champ_test.c
-	$(CC) $(CFLAGS) -I . -I .. -o $@ $^ $(LDFLAGS)
-
-../bin/champ_test: test/champ_test.o tree.o bic_setup.o bic_calculator.o tau.o champion_set.o read_file.o test/assert.o 
+../bin/champ_test: test/champ_test.o tree.o bic_setup.o bic_calculator.o tau.o read_file.o test/assert.o
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
