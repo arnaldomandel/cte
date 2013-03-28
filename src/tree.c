@@ -3,13 +3,14 @@
  */
 
 #include "tree.h"
+#include "list.h"
 
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
 
 // declaration of a function that is defined below
-Tree_node* create_child_node(Tree_node* parent, char symbol, int type);
+Tree_node create_child_node(Tree_node parent, char symbol, int type);
 
 
 /*
@@ -39,10 +40,10 @@ Tree_node* get_create_child_node(Tree_node* parent, char symbol, int type) {
 }
 */
 
-Tree_node dummy_node = { NULL, NULL, -1, NULL, NULL, NULL };
 
-Tree_node* get_create_child_node(Tree_node* parent, char symbol, int type) {
-    Tree_node *prev, *cur;
+Tree_node get_create_child_node(Tree_node parent, char symbol, int type) {
+    Tree_node prev, cur;
+    struct tree_node dummy_node = { NULL, NULL, -1, NULL, NULL, NULL };
     
     prev = &dummy_node;
     cur = prev->sibling = parent->child;
@@ -56,7 +57,7 @@ Tree_node* get_create_child_node(Tree_node* parent, char symbol, int type) {
     }
     
     // the correct node was not found, create a new one and put it at the correct position
-    Tree_node* new_node = create_child_node(parent, symbol, type);
+    Tree_node new_node = create_child_node(parent, symbol, type);
     new_node->sibling = cur;
     if (prev == &dummy_node)
 	parent->child = new_node;
@@ -71,16 +72,16 @@ Tree_node* get_create_child_node(Tree_node* parent, char symbol, int type) {
 /*
  * Creates a node and associates the given node as its parent and the given symbol as its own.
  */
-Tree_node* create_child_node(Tree_node* parent, char symbol, int type) {
-  Tree_node* child = new_Tree_node();
+Tree_node create_child_node(Tree_node parent, char symbol, int type) {
+  Tree_node child = new_Tree_node();
   child->symbol = symbol;
   child->parent = parent;
 
   // allocate memory for the data structure corresponding to the given type.
   if (type == BIC) {
-      child->bic_data = (Bic_data*) calloc(1, sizeof(Bic_data));
+      child->bic_data = (Bic_data) calloc(1, sizeof(struct bic_data));
   } else if (type == PROB){
-      child->prob_data = (Prob_data*) calloc(1, sizeof(Prob_data));
+      child->prob_data = (Prob_data) calloc(1, sizeof(struct prob_data));
   }
 
   return child;
@@ -89,7 +90,7 @@ Tree_node* create_child_node(Tree_node* parent, char symbol, int type) {
 /* 
  * Creates an empty tree
  */ 
-Tree_node* Tree_create(int type) 
+Tree_node Tree_create(int type) 
 {
     return create_child_node(NULL, 0, type);
 }
@@ -98,7 +99,7 @@ Tree_node* Tree_create(int type)
 /*
  * Frees the memory used by a node, its childs and siblings.
  */
-void free_node(Tree_node* node) {
+void free_node(Tree_node node) {
   if (node->bic_data != NULL) {
     free(node->bic_data);
   }
@@ -117,13 +118,13 @@ void free_node(Tree_node* node) {
 /*
  * Searches for a node with the given symbol among the children of the given node.
  */
-Tree_node* get_child_node(Tree_node* parent, char symbol) {
+Tree_node get_child_node(Tree_node parent, char symbol) {
   if (parent == NULL) {
     return NULL;
   }
   // walk through every child node, until we find a corresponding symbol, or stop at last node
   // keep symbols ordered, so traversal is lexicographic
-  Tree_node* current_node = parent->child;
+  Tree_node current_node = parent->child;
   while(current_node != NULL && current_node->symbol < symbol) 
     current_node = current_node->sibling;
 
@@ -133,8 +134,8 @@ Tree_node* get_child_node(Tree_node* parent, char symbol) {
 /*
  * Instantiates a new Tree_node and set its default values
  */
-Tree_node* new_Tree_node() {
-  Tree_node* node = (Tree_node*) malloc(sizeof(Tree_node));
+Tree_node new_Tree_node() {
+  Tree_node node = (Tree_node) malloc(sizeof(struct tree_node));
   node->child = NULL;
   node->sibling = NULL;
   node->parent = NULL;
@@ -143,7 +144,7 @@ Tree_node* new_Tree_node() {
   return node;
 }
 
-void print_tree(Tree_node* tree, char* given_label) 
+void print_tree(Tree_node tree, char* given_label, int depth) 
 {
     char lab[100], *l, *label;
     
@@ -154,14 +155,48 @@ void print_tree(Tree_node* tree, char* given_label)
     *l++ = tree->symbol;
     *l = 0;
     
-    printf("%s |%c| %p %p %p ", lab, tree->symbol, tree, tree->parent, tree->sibling);
+    printf("%*s |%c| %9p %9p %9p ", depth, lab, tree->symbol, tree, tree->parent, tree->sibling);
     if(tree->prob_data)
-	printf(" oc=%d prob=%f df=%d L=%f", tree->prob_data->occurrences,
-	       tree->prob_data->probability, tree->prob_data->degrees_freedom, tree->prob_data->ell);
+	printf(" oc=%d prob=%f df=%d L=%f T=%f", tree->prob_data->occurrences,
+	       tree->prob_data->probability, tree->prob_data->degrees_freedom, tree->prob_data->ell, tree->prob_data->T);
     else
 	printf(" v=%f %s", tree->bic_data->v, tree->bic_data->critical ? "crit" : "");
     printf("\n");
     
-    print_tree(tree->child, lab);
-    print_tree(tree->sibling, given_label);
+    print_tree(tree->child, lab, depth);
+    print_tree(tree->sibling, given_label, depth);
+}
+
+int outdegree(Tree_node root) 
+{
+    int s = 0;
+    ITERA(Tree_node, node, root->child, sibling)
+	s++;
+    return s;
+}
+
+/* 
+ * Number of nodes in the tree
+ */
+int tree_size(Tree_node root) 
+{
+    if ( !root )
+	return 0;
+    int siz = 1;
+    ITERA(Tree_node, node, root->child, sibling)
+	siz += tree_size(node);
+    return siz;
+}
+
+/*
+ * Calculates the node depth.
+ * If the given node is NULL, will return -1.
+ * Return 0 for the root node.
+ */
+int node_depth(Tree_node node) {
+  int depth = -1;
+  //for (Tree_node* current_node = node; current_node != NULL; current_node = current_node->parent)
+  ITERA(Tree_node, current_node, node, parent)
+      depth++;
+  return depth;
 }
