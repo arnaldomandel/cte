@@ -1,0 +1,29 @@
+Alphabet:0 1
+
+==============================
+Sample 1,
+BIC tree=  00 1 10
+SMC tree=  00 1 10
+
+==============================
+Sample 2,
+BIC tree=  00 1 10
+SMC tree=  000 1 10 100
+
+==============================
+Sample 3,
+BIC tree=  00 1 10
+SMC tree=  000 1 10 100
+
+==============================
+Sample 4,
+BIC tree=  00 1 10
+SMC tree=  000 1 10 100
+
+==============================
+Sample 5,
+BIC tree=  00 1 10
+SMC tree=  00 1 10
+5 size 10000 sequences where simulated from model 1,
+the true tree was chosen by the BIC criterion 0 times,
+the true tree was chosen by the SMC procedure 3 times.

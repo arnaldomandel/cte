@@ -1,0 +1,55 @@
+#!/usr/bin/perl
+# Time-stamp: <2013/06/16 19:29:47 hutzpa [hutzpa] am>
+
+sub usage {
+  print STDERR "
+Usage: perturb -f file  -p prob  [-s symb]
+       Perturbs a file introducing a new symbol with independent probability prob
+
+       -s symb       symbol to introduce [x]
+       -S seed       pseudo-random seed
+";
+}
+
+$O = '+';
+$C = '-';
+
+use Getopt::Std;
+
+getopts('f:p:s:S:');
+
+if (!$opt_f || !$opt_p) {
+  usage;
+  exit;
+}
+
+$prob = $opt_p;
+
+$symb = $opt_s || 'x';
+
+$file = pop [split "/",$opt_f];
+
+$tstamp = (time() - 1367682157) >> 6;
+
+$seed = $opt_S || (time() ^ ($$+($$<<15)));
+
+
+$jobname = "pert-$file-$symb-p$prob-S$seed-$tstamp";
+
+
+open IN,"<$opt_f";
+read IN,$word,10000000;
+close IN;
+
+srand $seed;
+
+open OUT, ">$jobname";
+for $c (split //,$word) {
+  while (rand() < $prob) {
+    print OUT $symb;
+  }
+  print OUT $c;
+}
+close OUT;
+
+print STDERR "File $jobname\n";

@@ -1,18 +1,15 @@
 /*
  * Implementation of methods declared in tau.h
  */
+/* Time-stamp: <2013/05/26 17:33:23 hutzpa [hutzpa] am> */
 
+#include "glob.h"
 #include "tau.h"
-#include "list.h"
-#include <stdlib.h>
-#include <string.h>
-#include <stddef.h>
-#include <stdio.h>
 
 /*
  * Declaration of method defined below.
  */
-Tau_item* new_tau_item(char* string, double prob);
+Tau_item new_tau_item(char* string, double prob);
 
 /*
  * Inserts a new Tau_item in the given Tau.
@@ -29,8 +26,8 @@ Tau_item* new_tau_item(char* string, double prob);
 /*
  * Inserts a new Tau_item at the end of the given Tau, so that strings are in revlex order
  */
-void insert_tau_item(Tau* tau, char* string, double prob) {
-    Tau_item* new_item = new_tau_item(string, prob);
+void insert_tau_item(Tau tau, char* string, double prob) {
+    Tau_item new_item = new_tau_item(string, prob);
     if(tau->item)
 	tau->last = tau->last->next = new_item;
     else
@@ -41,48 +38,50 @@ void insert_tau_item(Tau* tau, char* string, double prob) {
 /*
  * instantiates a new Tau_item
  */
-Tau_item* new_tau_item(char* string, double prob) {
-  Tau_item* tau_item = (Tau_item*) malloc(sizeof(Tau_item));
-  tau_item->string = string;
-  tau_item->probability = prob;
-  tau_item->next = NULL;
-  return tau_item;
+Tau_item new_tau_item(char* string, double prob) {
+    MEM(Tau_item, tau_item, (Tau_item) malloc(sizeof(struct tau_item)));
+  
+    tau_item->string = string;
+    tau_item->probability = prob;
+    tau_item->next = NULL;
+    return tau_item;
 }
 
 /*
  * Allocates and return a new Tau
  */
-Tau* new_Tau() {
-  Tau* tau = (Tau*) malloc(sizeof(Tau));
-  tau->last = tau->item = NULL;
-  tau->L = 0;
-  return tau;
+Tau new_Tau() {
+    MEM(Tau, tau, (Tau) malloc(sizeof(struct tau)));
+  
+    tau->last = tau->item = NULL;
+    tau->L = 0;
+    return tau;
 }
 
 
 /*
  * Frees the memory allocated by the given Tau and its items.
  */
-void free_Tau(Tau* t) {
-  Tau_item* item = t->item;
-  while (item != NULL) {
-    Tau_item* next_item = item->next;
-    free(item);
-    item = next_item;
-  }
-  free(t);
-  t = NULL;
+void free_Tau(Tau t) {
+    Tau_item item = t->item;
+    while (item != NULL) {
+	Tau_item next_item = item->next;
+	free(item);
+	item = next_item;
+    }
+    free(t);
+    t = NULL;
 }
 
 
 /*
  * returns the number os items in the given tau
  */
-int items_in_Tau(Tau* t) {
+int items_in_Tau(Tau t) {
   int items = 0;
 
   // while (item != NULL) {
-  ITERA(Tau_item*, item, t->item, next)
+  ITERA(Tau_item, item, t->item, next)
     items++;
 
   return items;
@@ -125,8 +124,8 @@ int equals_Tau(Tau* t1, Tau* t2) {
  * Verifies whether the two taus are equal.  Since tau is an ordered 
  * list of strings, a simple element by element comparison suffices.
  */
-int equals_Tau(Tau* t1, Tau* t2) {
-    Tau_item *p1, *p2;
+int equals_Tau(Tau t1, Tau t2) {
+    Tau_item p1, p2;
     for(p1=t1->item, p2=t2->item; p1 && p2; p1=p1->next, p2=p2->next)
 	if(strcmp(p1->string, p2->string))
 	    return 0;  // they differ
@@ -136,28 +135,28 @@ int equals_Tau(Tau* t1, Tau* t2) {
      
 
 /*
- * Prints the given Tau to stdout.
+ * Prints the given Tau to file.
  */
-void print_Tau(Tau* tau) {
+void fprint_Tau(FILE *f, Tau tau) {
     // for (Tau_item* item = tau->item; item != NULL; item = item->next)
-    ITERA(Tau_item*, item, tau->item, next)
-	printf("%s ", item->string);
+    ITERA(Tau_item, item, tau->item, next)
+	fprintf(f, "%s ", item->string);
 //    printf("%s(%f) ", item->string, item->probability);
 }
 
-void pprint_Tau(Tau* tau) {
-    Tau_item* item;
+void fpprint_Tau(FILE *f, Tau tau, double L0) {
+    Tau_item word;
     int siz = 0, l;
 
     // finds max length for pretty printing suffixes 
-    ITERA(, item, tau->item, next)
-	if ( siz < ( l = strlen(item->string) ) )
+    ITERA(, word, tau->item, next)
+	if ( siz < ( l = strlen(word->string) ) )
 	     siz = l;
 
-    printf("[%f]\n", tau->L);
+    fprintf(f, "(c=%f L=%f nL=%f)\n", tau->c, tau->L, tau->L/L0);
     // for (item = tau->item; item != NULL; item = item->next)  
-    ITERA(, item, tau->item, next)
-	printf("%*s\n", siz, item->string);
+    ITERA(, word, tau->item, next)
+	fprintf(f, "%*s\n", siz, word->string);
 }
 
 	     

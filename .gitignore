@@ -25,3 +25,6 @@
 # Eclipse project files
 .project
 .cproject
+
+# Backups
+*~

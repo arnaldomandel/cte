@@ -1,5 +1,6 @@
-#include <stdio.h>
-#include <stdlib.h>
+/* Time-stamp: <2013/05/28 11:39:42 benavuya.ime.usp.br [benavuya] am> */
+
+#include "glob.h"
 #include "messages.h"
 
 /*
@@ -12,8 +13,8 @@ void fatal_error(enum Error_code code) {
   case FILE_NOT_FOUND:
     fprintf(stderr, "The file containing the alphabet could not be found.\n");
     break;
-  case WRONG_ARGUMENTS:
-    fprintf(stderr, "Wrong number of arguments given.\n");
+  case MISSING_FILENAME:
+    fprintf(stderr, "Missing filename.\n");
     usage();
     break;
   case UNABLE_TO_RESAMPLE:
@@ -29,16 +30,21 @@ void fatal_error(enum Error_code code) {
  */
 void usage() {
 
-  printf("Usage: \n\n");
+  printf("Usage: cte -f file [OPTION]...\n       SMC estimation of context tree.\n\n");
 
-  printf("cte <samples_file> <depth> <max_c> <epsilon> <size_resample1> <size_resample2> <number_of_resamples>\n\n");
-
-  printf("<samples_file> is the file with the samples ie. ./samples.txt\n");
-  printf("<depth> is the depth of tree, or the size of the words to consider ie. 6\n");
-  printf("<max_c> is a c that is used as the maximum cost, a Tau with this cost should be the root tree. ie. 3.5\n");
-  printf("<epsilon> the minimum difference between two costs, to calculate the champion set. ie. 0.01\n");
-  printf("<size_resample1> the size of the small resamples, in percentage ie. 10\n");
-  printf("<size_resample2> the size of the big resamples, in percentage ie. 50\n");
-  printf("<number_of_resamples> the number of resamples to create\n\n ");
-
+  printf("  Option:                              meaning [default]\n");
+  printf("    -f, --file=samples_file            file with the samples, mandatory\n");
+  printf("    -d, --depth=n                      max size of the words to consider [5]\n");
+  printf("    -j, --job-name=name                base name for files [constructed]\n");
+  printf("    -K, --kept-trees=n                 keep n champion trees [all]\n");
+  printf("    -R, --resample-method=x            resample method: e - ext, r - rand [e]\n");
+  printf("    -n, --number-samples=n             number of resamples to create [10]\n");
+  printf("    -s, --number-sizes=n               number of resample sizes [5]\n");
+  printf("    -r, --renewal-string=TEXT          renewal string [M.F.W.]\n");
+  printf("    -C, --confidence-level=f           confidence for rejecting 0 on regression [.99]\n");
+  printf("    -m, --midpoint=a or m              choose average or median in the bootstrap [a]\n");
+  printf("    -S, --seed=n                       pseudo-random generator seed [time]\n");
+  printf("    -c, --champ-method=n               'o' chooses old method for champion trees\n");
 }
+
+

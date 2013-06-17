@@ -1,0 +1,58 @@
+champ
+  Contains on each line a champion tree, in order of increased penalty.
+  Each line has the format:
+  # num [ tree ]
+  where num is a (sequencial) number and tree is a list of suffix labels of
+  the leaves of the tree; each label is a word, they are separated by spaces;
+  labels are in reverse lex order.
+  TODO: a better reading format is
+  # num [
+         label
+         label
+         label
+        ]
+       maybe it is good to have a converter for this form (one line perl program)
+  Depends: file, depth
+
+qtree
+  Same list as the corresponding champ file.  Each tree is a single line \Tree
+  command for qtree, followed by a line with \newpage.
+  Depends: file, depth
+
+prob
+  Transition probabilities computed from the initial sample.
+  Each line has th form:
+    w - a:x b:y ...
+  where 
+    w is a word of legth <= depth, found in the sample
+    the separator - is vertically aligned
+    each pair like a:x means:
+       a is one alphabet symbol
+       x = p(wa|w)
+  Depends: file, depth
+
+bst
+  Main bootstrapping results.
+  Lines starting with # are comments.
+  Follows by lines in 3 columns, in blocks separated by two blank lines.
+  Each block corresponds to a champ tree, in the same order as before.
+  Each line corresponds to a resample size.  For a given size and tree t,
+  the corresponding first column entry is an estimate of
+   log-likelihood(t, size) - log-likelihood(t', size)
+  where t' is the next tree, and the estimator is the average of the
+  computed values over the resamples of that size; in the same line column 2
+  there appears the standard deviatiation computed alongside the average.
+  The third column contains the difference between the corresponding first
+  column and the same column shifted one row down; the first entry in the
+  column is alwais a ? , meaning "undefined".
+
+  Depends: file, depth, number of resamples, number of sizes, seed, renewal string
+ 
+reg
+  Lines starting with # are comments.
+  One line for each champ three of the form
+   num coef
+  where num is the number of the tree,
+  coef is the leasts squares linear regression coefficient for the
+  same tree's third column in the corresponding bst file.
+

@@ -1,0 +1,9 @@
+
+ 
+       
+Size = 10000          
+Nr. Sim = 5       
+Model = 1
+5 size 10000 sequences where simulated from model 1,
+the true tree was chosen by the BIC criterion 0 times,
+the true tree was chosen by the SMC procedure 3 times.

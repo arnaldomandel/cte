@@ -1,0 +1,206 @@
+#include "glob.h"
+#include "tree.h"
+#include "tau.h"
+#include "read_file.h"
+#include <math.h>
+#include <unistd.h>
+
+char next_char(char *buf, Tree_node tree, double *loglike);
+Tree_node parse_prob(FILE *probfile);
+Tau choose_tau_from_champ(FILE *champfile, int num, char *maxs);
+void prune(Tree_node tree, Tau tau);
+
+#define BUFSIZE 10000
+
+#define IOPT(c,text,var) 	case c:\
+	    if(!optarg) {\
+		e = 1;\
+		warn("Missing " text "\n");\
+	    }\
+	    else\
+		var = atoi(optarg);\
+	    break
+#define FOPT(c,text,var) 	case c:\
+	    if(!optarg) {\
+		e = 1;\
+		warn("Missing " text "\n");\
+	    }\
+	    else\
+		var = atof(optarg);\
+	    break
+#define SOPT(c,text,var) 	case c:\
+	    if(!optarg) {\
+		e = 1;\
+		warn("Missing " text "\n");\
+	    }\
+	    else\
+		var = optarg;		\
+	    break
+//		var = strdup(optarg);	
+//	    break
+#define NOPT(c,var)	 	case c:\
+	      var = 1;		\
+	    break
+
+
+
+int main(int argc, char **argv)
+{
+    Filename fname;
+    FILE *prob, *champ, *out;
+    int  treenum = 0, size = 0, opt, e=0;
+    char buf[100], *job;
+    Tree_node tree;
+    Tau tau;
+    double logL = 0;
+
+    mesg("Before args");
+    
+    while((opt = getopt(argc, argv, "j:t:s:")) != -1) 
+	switch ( opt ) {
+	    SOPT('j', "jobname", job);
+	    IOPT('t', "tree num", treenum);
+	    IOPT('s', "size", size);
+	}
+    if(e) {
+	printf("Argument missing\n");
+	exit(1);
+    }
+    mess("job %s tree %d size %d\n", job, treenum, size);
+    
+    sprintf(fname, "%s.prob", job);
+    prob = fopen(fname, "r");
+    tree = parse_prob(prob);
+    fclose(prob);
+    mess("Parsed %s\n", fname);
+    
+    sprintf(fname, "%s.champ", job);
+    champ = fopen(fname, "r");
+    tau = choose_tau_from_champ(champ, treenum, buf);
+    fclose(champ);
+    mess("Chosen tree %d from %s; buffer: %s\n", treenum, fname, buf);
+    
+    prune(tree, tau);
+    
+    print_tree(tree, 7);
+    
+    // Maybe initialize buf otherwise
+    sprintf(fname, "%s-%d-%d.sim", job, treenum, size);
+    out = fopen(fname, "w");
+    for(int i = 0; i < size; i++) {
+	fputc(next_char(buf, tree, &logL), out);
+	//mess("%8d\r", i);
+    }
+    mesg("");
+    fputc('\n', out);
+    fclose(out);
+    printf("Log likelihood: %lg\n", logL);
+}
+
+
+Tree_node node_of_max_suffix(Tree_node tree, char *w)
+{
+    Tree_node t = node_of_word(tree,w);
+    
+    while(!t || !t->p.occurrences) {
+	t = node_of_word(tree, ++w);
+	printf("t: %p w: %s\n", t, w);
+    }
+    
+    return t;
+}
+
+
+char next_char(char *buf, Tree_node tree, double *loglike)
+{
+    double prob = rand() / (RAND_MAX+1.0);
+    char *b;
+    
+    mess("%s\n", buf);
+    Tree_node t = node_of_max_suffix(tree, buf);
+    if(!t)
+	printf("porra de palavra: %s\n", buf);
+    
+    if(!t->child) {
+	mesg("Stomped!");
+	print_node(t,"",6);
+	
+	exit(1);
+    }
+    for(t = t->child; t->sibling && prob > 0; t = t->sibling)
+	prob -= t->p.probability;
+    *loglike += log(t->p.probability);
+    for(b = buf + 1; *b; b++)
+	b[-1] = *b;
+    return b[-1] = t->symbol;
+}
+
+
+Tree_node parse_prob(FILE *probfile) // file already open
+{
+    char line[BUFSIZE], *tok, c;
+    Tree_node tree, t;
+    double prob;
+    
+    while(fgets(line, BUFSIZE, probfile)){
+	if(*line == '#')
+	    continue;
+	tok = strtok(line, " ");
+	if(!tok) break;
+	
+	if(*tok == '-')
+	    t = tree = Tree_create(PROB);
+	else {
+	    t = node_of_word(tree, tok);
+	mess("tok %s symb %c\n", tok, t->symbol);
+	print_node(t, "",6);
+	print_node(t->parent, "",6);
+	}
+	
+	while((tok = strtok(NULL, " -\n"))) {
+	    sscanf(tok, "%c:%lf", &c, &prob);
+	    mess("    %c %f\n", c, prob);
+	    Tree_node tc = get_create_child_node(t, c, PROB);
+	    mess("    tok %s symb %c\n", tok, tc->symbol);
+	    print_node(t, "",6);
+	    print_node(tc, "",6);
+	    
+	    tc->p.probability = prob;
+	}
+    }
+    return tree;
+}
+
+Tau choose_tau_from_champ(FILE *champfile, int num, char *maxs)
+{
+    char *line, *tok;
+    int i, s;
+    Tau t = new_Tau();
+
+    for(i = 1; i < num; i++)
+	read_line(champfile);
+    line = read_line(champfile);
+    tok = strtok(line, "# ");
+    if(atoi(tok) != num) {
+	mess("line %d: %s\n", num, line);
+	exit(1);
+    }
+    int maxl = 0;
+    while((tok = strtok(NULL, " []"))) {
+	if((s= strlen(tok)) > maxl) {
+	    strcpy(maxs, tok);
+	    maxl = s;
+	}
+	
+	insert_tau_item(t, tok, 1.);
+    }
+    return t;
+}
+
+// Mark all usable nodes as critical (mixing node types)
+void prune(Tree_node tree, Tau tau)  
+{
+    ITERA(Tau_item, item, tau->item, next) 
+	ITERA(Tree_node, t, node_of_suffix(tree, item->string), parent)
+	    t->p.occurrences = 1;
+}

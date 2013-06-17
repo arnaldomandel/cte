@@ -1,0 +1,13 @@
+Some possible optimizations, most of them irrelevant now, but who knows what
+happens with large alphabets:
+
+1) Remove tail recursion in several routines.
+
+2) Eliminate most recursions by first computing a bfs numbering of nodes.
+
+3) In the successive calls of delta_tau, L_tau_mat is called twice for each
+   tree.  A little caching would save this replication.
+
+4) Eliminate many calls to get_create_child_node and get_child_node by first
+   hashing labels.  Not sure this will be fast.  
+

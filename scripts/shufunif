@@ -1,0 +1,67 @@
+#!/usr/bin/perl
+# Time-stamp: <2013/06/16 23:59:37 hutzpa [hutzpa] am>
+
+sub usage {
+  print STDERR "
+Usage: shufunif -f file  [-g gap]
+       Perturbs a file introducing between each two symbols a uniformly generated gap.
+
+       -g gap        legth of the gap [1]
+       -S seed       pseudo-random seed
+";
+}
+
+sub randword {
+  $s = "";
+  while (length($s) < $gap) {
+    $s .= $symbs[int(rand scalar @symbs)];
+  }
+  return $s;
+}
+
+use Getopt::Std;
+
+getopts('f:g:S:');
+
+if (!$opt_f) {
+  usage;
+  exit;
+}
+
+$gap = $opt_g || 1;
+
+$file = pop [split "/",$opt_f];
+
+$tstamp = (time() - 1367682157) >> 6;
+
+$seed = $opt_S || (time() ^ ($$+($$<<15)));
+
+
+$jobname = "pert-$file-g$gap-S$seed-$tstamp";
+
+
+open IN,"<$opt_f";
+read IN,$word,10000000;
+close IN;
+chomp $word;
+
+@chars = split //,$word;
+
+for (@chars) {
+  $ispresent{$_} = 1;
+}
+@symbs = keys %ispresent, "\n";
+
+
+srand $seed;
+
+$outstr = "";
+for $c (@chars) {
+  $outstr .= $c;
+  $outstr .= randword;
+}
+open OUT, ">$jobname";
+print OUT $outstr;
+close OUT;
+
+print STDERR "File $jobname\n";

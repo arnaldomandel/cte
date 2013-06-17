@@ -1,0 +1,71 @@
+#!/bin/bash
+# Time-stamp: <2013/05/25 08:35:01 hutzpa [hutzpa] am>
+
+usage() {
+echo "Usage: showtrees -f filename [OPTIONS]
+      Shows images of trees extracted from a .qtree file.
+
+      Options:               [default]
+        -s  s          Start with tree s [1]
+        -e  e          End with tree e [last]
+"
+}
+
+start=1
+end=0
+file=""
+scriptsdir=${0%/*}
+
+while getopts f:s:e: opt 
+do
+    case $opt in
+	f)
+	    file=$OPTARG
+	    ;;
+	s)
+	    start=$OPTARG
+	    ;;
+	e)
+	    end=$OPTARG
+	    ;;
+	?)
+	    usage
+	    exit
+	    ;;
+    esac
+done
+
+
+if [ -z $file ]
+then
+    usage
+    exit
+fi
+
+file=${file%.qtree}.qtree
+if [ ! -r $file ]
+then
+    echo $file not found or not readable.
+    exit
+fi
+
+if [ $end -eq 0 ]
+then
+    end=`awk 'END{print FNR/2}' $file`
+    temp=${file%.qtree}-$start-last
+else
+    temp=${file%.qtree}-$start-$end
+fi
+
+echo '\setcounter{page}{'$start'}' > $temp.inc
+if [ $start -gt 1 ]
+then
+    sed -e "$((2*$end+1)),\$ d" -e "1,$((2*($start-1))) d"  $file >> $temp.inc
+else
+    sed -e "$((2*$end+1)),\$ d" $file >> $temp.inc
+fi
+ln -sf $temp.inc trees-to-qdraw.tex
+pdflatex -jobname $temp $scriptsdir/dqtrees.tex | grep '\[[0-9]\+\]'
+#rm $temp.aux $temp.log $temp.inc trees-to-qdraw.* # pollution
+test -r $temp.pdf && acroread $temp.pdf &
+

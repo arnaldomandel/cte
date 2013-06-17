@@ -1,0 +1,50 @@
+#!/usr/bin/perl
+# Time-stamp: <2013/06/03 15:24:09 benavuya.ime.usp.br [benavuya] am>
+
+
+sub usage {
+  print STDERR "
+Usage: inter [OPTIONS]
+       Generates a two-letter Dyck prefix.
+
+       -s size       size of the generated file
+       -p prob       probability of open par [.5]
+       -S seed       pseudo-random seed
+       -P            use () [+-]
+       -o k          multiplicity of open symbol [1]
+       -c k          multiplicity of close symbol [1]
+       -b            generate a binomial word [Dyck]
+";
+}
+
+use Getopt::Std;
+
+
+$tstamp = (time() - 1367682157) >> 6;
+
+
+$jobname = "inter-$tstamp";
+
+
+for $file (@ARGV) {
+  open IN, "<$file";
+  while (<IN>) {
+    if (/#/) {
+      ($l, $c, $r) = split /\[|\(/;
+      #print STDERR "$l--$c--$r\n";
+      $champs{$c}++;
+      $class{$c} = 100*$class{$c}+substr $l,2;
+    }
+  }
+  close IN;
+  $numf++;
+}
+open OUT, ">$jobname";
+@trees = sort {$champs{$b} <=> $champs{$a} or $class{$a} <=> $class{$b}} keys %champs;
+print scalar @trees, "\n";
+
+for ($i=0;$i<scalar @trees;$i++) {
+  print OUT "$champs{$trees[$i]} $trees[$i]\n"
+}
+close OUT;
+print STDERR "File $jobname\n";

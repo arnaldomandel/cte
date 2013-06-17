@@ -1,0 +1,24 @@
+Digital trees:
+  They are implemented in tree.[ch]; they are headless, and tree node pointers
+  are of type Tree_node.  Each node has an unlimited number of children; the
+  first is pointed by the field *child*, and the list proceeds from there by
+  the link *sibling*.  The symbols on children node are in increasing
+  character order.
+
+  Two types of digital trees are constructed, representing factorial
+  languages, and differing on what is considered to be the label of a node:
+    in a pre-tree, the label is that of the root path from de node
+    in a suf-tree, the label is that of the path from de node to the root
+
+  While pre-trees are constructed aplenty, each suf-tree is contructed along a
+  pre-tree for the same set.  Each node of the suf-tree points to the
+  corresponding node (same label) in the pre-tree, via field *mate*.
+
+  As a convention, whenever a tree variable/parameter is especially expected
+  to be of type pre or suf, this is indicated in the identifier.
+
+Tau:
+  This is a finite set of words, that is an antichain in the suffix order.
+  They are represented as a linked list of nodes pointed by type Tau_item, and
+  have a head pointed by type Tau.  The list is in revlex order.
+  Impemented in tau.[ch].

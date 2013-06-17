@@ -9,8 +9,6 @@
 #include <stdlib.h>
 
 
-extern Tree_node* prob_root;
-extern Tree_node* bic_root;
 
 /*
  * Test the result for the bic calculator.
@@ -18,13 +16,15 @@ extern Tree_node* bic_root;
 int main(int argc, char** argv) {
   char** samples = read_lines(argv[1]);
   double c = strtod(argv[2], NULL);
+  Tree_node prob_root = Tree_create(PROB);
+  Tree_node bic_root = Tree_create(BIC);
 
-  setup_BIC(samples, 5);
-  print_tree(prob_root, "");
+  setup_BIC(samples, 5, prob_root, bic_root);
+  print_tree(prob_root, 5);
 
   
-  Tau* tao = calculate_BIC(c);
-  print_tree(bic_root, "");
+  Tau tao = calculate_BIC(c, bic_root);
+  print_tree(bic_root, 5);
 
   pprint_Tau(tao);
   

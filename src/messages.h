@@ -1,6 +1,7 @@
 /*
  * Definition of error codes and fatal error method.
  */
+/* Time-stamp: <2013/05/04 22:18:10 hutzpa [hutzpa] am> */
 #ifndef MESSAGES_H_
 #define MESSAGES_H_
 
@@ -11,7 +12,7 @@
  */
 enum Error_code {
   FILE_NOT_FOUND = 1,
-  WRONG_ARGUMENTS = 2,
+  MISSING_FILENAME = 2,
   UNABLE_TO_RESAMPLE = 3
 };
 

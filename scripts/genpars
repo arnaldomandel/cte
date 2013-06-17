@@ -1,0 +1,75 @@
+#!/usr/bin/perl
+# Time-stamp: <2013/05/26 16:47:58 hutzpa [hutzpa] am>
+
+sub usage {
+  print STDERR "
+Usage: genpars -s size [OPTIONS]
+       Generates a two-letter Dyck prefix.
+
+       -s size       size of the generated file
+       -p prob       probability of open par [.5]
+       -S seed       pseudo-random seed
+       -P            use () [+-]
+       -o k          multiplicity of open symbol [1]
+       -c k          multiplicity of close symbol [1]
+       -b            generate a binomial word [Dyck]
+";
+}
+
+$O = '+';
+$C = '-';
+
+use Getopt::Std;
+
+getopts('p:s:S:o:c:Pb');
+
+$prob1 = $opt_p || .5;
+
+$size = $opt_s;
+
+$binom = $opt_b;
+
+$tstamp = (time() - 1367682157) >> 6;
+
+$seed = $opt_S || (time() ^ ($$+($$<<15)));
+
+if ($opt_P) {
+  ($O, $C) = ('(', ')');
+}
+
+$amult = $opt_o || 1;
+$fmult = $opt_c || 1;
+$O x= $amult;
+$C x= $fmult;
+
+if (!$size) {
+  usage;
+  exit;
+}
+
+$jobname = "pars-" . ($binom ? "b" : "d") . "-$size-p$prob1-a$amult-f$fmult-S$seed-$tstamp";
+
+
+$word = $O;
+$count = 1;
+srand $seed;
+
+while (length $word < $size) {
+  $symb = (($count || $binom) && rand > $prob1) ? $C : $O;
+  $word .= $symb;
+  if ($symb eq $O) {
+    $counto++;
+    $count++;
+  } else {
+    $countc++;
+    $count--;
+  }
+  $zcount += !$count;
+}
+
+open OUT, ">$jobname";
+print OUT $word;
+close OUT;
+
+print STDERR "File $jobname\n";
+print STDERR "open: $counto  close: $countc close/open: ", $countc/$counto, "   zeros: $zcount\n";

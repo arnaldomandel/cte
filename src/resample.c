@@ -4,128 +4,218 @@
  *  Created on: Feb 27, 2013
  *      Author: onuki
  */
+/* Time-stamp: <2013/05/26 23:36:01 hutzpa [hutzpa] am> */
 
-#include <stddef.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
-
-#include "kmp.h"
+#include "glob.h"
+#include "tree.h"
 #include "bic.h"
+#include "resample.h"
 #include "messages.h"
+
+#include <math.h>
 
 // returns a random number between 0..(num-1)
 #define random_num(num) (int)(rand() / (RAND_MAX+1.0) * num)
 
-
-
-typedef struct omega Omega;
-
-struct omega {
-  char* word;
-  Omega* next;
-};
-
-/*
- * Frees the memory allocated for the omega
+/* 
+ * Generates a sample of a given size concatenating random strings from a list
  */
-void free_omega(Omega* omega) {
-  if (omega == NULL) return;
-  Omega* next = omega->next;
-  free(omega->word);
-  free(omega);
-  free_omega(next);
+char *gen_sample(char ** const list, const int listsize, const int samplesize)
+{
+    //DEB("gen_sample %p %d %d\n", list, listsize, samplesize);
+    
+    MEM(char*, sample, (char*) calloc(samplesize + 1, sizeof(char)));
+    for(int current_size = 0; current_size < samplesize; current_size = strlen(sample)) 
+	    strncat(sample, list[random_num(listsize)], samplesize - current_size);
+    return sample;
 }
 
 /*
- * Copies a range from the src string to a newly allocated one.
+ * Creates the resamples to be used on the bootstrapping.  All resamples are independent.
  */
-char* copy_string(char* src, int start_index, int count) {
-  char* string = (char*) malloc((count + 1) * sizeof(char));
-  for (int i = 0; i < count; i++) {
-    string[i] = src[start_index + i];
-  }
-  string[count] = '\0';
-  return string;
+Resamples resample_rand(char** samples, Tree_node pre_tree, const char* split_word,
+		int num_sizes, int number_of_resamples)
+{
+    // MEM(char**, resamples, (char**) malloc((2*number_of_resamples)*sizeof(char*)));
+  
+    int word_size = strlen(split_word);
+    int num_pieces = node_of_word(pre_tree, split_word)->p.occurrences;
+    MEM(char **, block_list, (char **) calloc(num_pieces, sizeof(char*)));
+    int num_blocks = 0;
+    Resamples resamples = (Resamples) malloc(sizeof(struct resamples));
+    int count = 0, i;
+    double scale = 1, scaling_factor;
+    int minblock = 100000000, maxblock = 0;
+
+    // cycle through samples
+    for(i = 0; samples[i] != NULL; i++) {
+	// partition into blocks
+	// will start searching after the first split-word
+	char *begin = strstr(samples[i], split_word) + word_size;
+
+	while(1) {
+	    char *next = strstr(begin, split_word);
+	    if (!next) { //if there are no more matches, go to the next sample
+		break;
+	    }
+	    int blsiz = (next - begin) + word_size;
+	    block_list[num_blocks++] = strndup(begin, blsiz);
+	    begin = next + word_size;
+	    if(blsiz < minblock) minblock = blsiz;
+	    else if(blsiz > maxblock) maxblock = blsiz;
+	    DEB("Block: %7d\r", ++count);
+	    //DEB("Block %6d: %s\n", ++count, block_list[num_blocks-1]);
+	}
+	DEBS("");
+    }
+
+    mess("Split word: %s  Num blocks: %d  Min block: %d  Max block: %d\n", split_word, num_blocks, minblock, maxblock);
+    
+    /* 
+     * for(int i=0; i<num_blocks;i++)
+     * 	DEBS(block_list[i]);
+     */
+    
+    if (num_blocks < MIN_BLOCKS) {
+	fatal_error(UNABLE_TO_RESAMPLE);
+    }
+
+    // storing the adjusted size of the original sample
+    int sample_size = size_of_sample(pre_tree) * SMALL_SAMPLE;
+
+    mess("Sample size: %10d ", pre_tree->p.occurrences);
+    
+    resamples->num_sizes = num_sizes;
+    resamples->num_resamples = number_of_resamples;
+    resamples->orig_tree = pre_tree;
+    scaling_factor = exp( log(LARGE_SAMPLE/SMALL_SAMPLE) / (num_sizes - 1) );
+    mess("Scaling factor %f\nSample sizes:\n", scaling_factor);
+
+	
+    for(i = 0; i < num_sizes; i++) {
+	resamples->s[i].size = (int) sample_size * scale;
+	mess("%9d\n", resamples->s[i].size);
+	MEM(,resamples->s[i].sample, (char**) malloc((number_of_resamples)*sizeof(char*)));
+	scale *= scaling_factor;
+    }
+    mesg("");
+    
+    DEBS("Start resample vector");
+    
+    count = 0;
+    // generating all resamples
+    for (int j = 0; j < resamples->num_sizes; j++) {
+	for (i = 0; i < number_of_resamples; i++) {
+	    mess("Resample: %5d %4d %4d %6d\r", ++count, i, j, resamples->s[j].size);
+	    resamples->s[j].sample[i] = gen_sample(block_list, num_blocks, resamples->s[j].size);
+	}
+    }
+    
+    DEBS("");
+
+    // the block_list won't be used anymore, so free its memory
+    for(i = 0; i < num_blocks; i++)
+    	free(block_list[i]);
+    free(block_list);
+
+    return resamples;
 }
+
 
 /*
- * Creates the resamples to be used on the bootstrapping
+ * Creates the resamples to be used on the bootstrapping.
+ * Largest size resamples are independent, smaller resamples are truncations of the large ones.
  */
-char** resample(char** samples, char* most_frequent_word, int size_resample1, int size_resample2, int number_of_resamples) {
-  char** resamples = (char**) malloc((2*number_of_resamples)*sizeof(char*));
-  Omega* omega_set = NULL;
-  int word_size = strlen(most_frequent_word);
+Resamples resample_ext(char** samples, Tree_node pre_tree, const char* split_word,
+		       int num_sizes, int number_of_resamples)
+{
+    // MEM(char**, resamples, (char**) malloc((2*number_of_resamples)*sizeof(char*)));
+  
+    int word_size = strlen(split_word);
+    int num_pieces = node_of_word(pre_tree, split_word)->p.occurrences;
+    MEM(char **, block_list, (char **) calloc(num_pieces, sizeof(char*)));
+    int num_blocks = 0;
+    Resamples resamples = (Resamples) malloc(sizeof(struct resamples));
+    int count = 0, i;
+    double scale = 1, scaling_factor;
+    int minblock = 100000000, maxblock = 0;
 
-  // cycle through samples
-  for(int i = 0; samples[i] != NULL; i++) {
+    // cycle through samples
+    for(i = 0; samples[i] != NULL; i++) {
+	// partition into blocks
+	// will start searching after the first split-word
+	char *begin = strstr(samples[i], split_word) + word_size;
 
-    // will start searching after the first mf-word
-    int begin = kmp(samples[i], 0, most_frequent_word) + word_size;
-
-    while(1) {
-      int next = kmp(samples[i], begin, most_frequent_word);
-      if (next == -1) { //if there are no more matches, go to the next sample
-        break;
-      }
-      // creates and addes the new item to omega
-      Omega* new_item = (Omega*) malloc(sizeof(Omega));
-      new_item->word = copy_string(samples[i], begin, next - begin);
-      new_item->next = omega_set;
-      omega_set = new_item;
-      begin = next + word_size;
-    }
-  }
-
-  int omega_size = 0;
-  { // calculating the number os words in omega
-    Omega* omega = omega_set;
-    while (omega != NULL) {
-      omega_size++;
-      omega = omega->next;
-    }
-  }
-
-  if (omega_size == 0) {
-    fatal_error(UNABLE_TO_RESAMPLE);
-  }
-
-  // starting random number generator
-  srand((unsigned int)time(NULL));
-
-  // storing the size of the original sample
-  int sample_size = size_of_sample();
-
-  // generating all resamples
-  for (int i = 0; i < 2 * number_of_resamples; i++) {
-    int size;
-    if (i < number_of_resamples) { // the first half of resamples will have the smallest size, the other half the bigger size
-      size = sample_size * size_resample1 / 100;
-    } else {
-      size = sample_size * size_resample2 / 100;
+	while(1) {
+	    char *next = strstr(begin, split_word);
+	    if (!next) { //if there are no more matches, go to the next sample
+		break;
+	    }
+	    int blsiz = (next - begin) + word_size;
+	    block_list[num_blocks++] = strndup(begin, blsiz);
+	    begin = next + word_size;
+	    if(blsiz < minblock) minblock = blsiz;
+	    else if(blsiz > maxblock) maxblock = blsiz;
+	    DEB("Block: %7d\r", ++count);
+	    //DEB("Block %6d: %s\n", ++count, block_list[num_blocks-1]);
+	}
+	DEBS("");
     }
 
-    char* resamplei = (char*) malloc((size + 1)*sizeof(char));
-    for (int i = 0; i < size + 1; i++) {
-      resamplei[i] = '\0';
+    mess("Split word: %s  Num blocks: %d  Min block: %d  Max block: %d\n", split_word, num_blocks, minblock, maxblock);
+    
+    /* 
+     * for(int i=0; i<num_blocks;i++)
+     * 	DEBS(block_list[i]);
+     */
+    
+    if (num_blocks < MIN_BLOCKS) {
+	fatal_error(UNABLE_TO_RESAMPLE);
     }
 
-    int current_size = 0;
-    do {
-      int selected = random_num(omega_size);
-      Omega* omega = omega_set;
-      for (int i = 0; i < selected; i++) {
-        omega = omega->next;
-      }
-      strncat(resamplei, omega->word, size - current_size);
-      current_size = strlen(resamplei);
-    } while(current_size < size);
-    resamples[i] = resamplei;
-  }
+    // storing the adjusted size of the original sample
+    int sample_size = size_of_sample(pre_tree) * SMALL_SAMPLE;
 
+    mess("Sample size: %10d ", pre_tree->p.occurrences);
+    
+    resamples->num_sizes = num_sizes;
+    resamples->num_resamples = number_of_resamples;
+    resamples->orig_tree = pre_tree;
+    scaling_factor = exp( log(LARGE_SAMPLE/SMALL_SAMPLE) / (num_sizes - 1) );
+    mess("Scaling factor %f\nSample sizes:\n", scaling_factor);
 
-  // the omega set wont be used anymore, so free its memory
-  free_omega(omega_set);
-  return resamples;
-}
+	
+    for(i = 0; i < num_sizes; i++) {
+	resamples->s[i].size = (int) sample_size * scale;
+	mess("%9d\n", resamples->s[i].size);
+	MEM(,resamples->s[i].sample, (char**) malloc((number_of_resamples)*sizeof(char*)));
+	scale *= scaling_factor;
+    }
+    mesg("");
+    
+    DEBS("Start resample vector");
+    
+    count = 0;
+    // generating all resamples
+    for (i = 0; i < number_of_resamples; i++) {
+	// Generate the larger one
+	resamples->s[resamples->num_sizes-1].sample[i] =
+	    gen_sample(block_list, num_blocks, resamples->s[resamples->num_sizes-1].size);
+	count += num_sizes;
+	mess("Resample: %5d\r", count);
+	for (int j = 0; j < resamples->num_sizes-1; j++) {
+	    // Truncate to get the smaller ones
+	    resamples->s[j].sample[i] =
+		strndup(resamples->s[resamples->num_sizes-1].sample[i], resamples->s[j].size);
+	}
+    }
+    
+    DEBS("");
 
+    // the block_list won't be used anymore, so free its memory
+    for(i = 0; i < num_blocks; i++)
+    	free(block_list[i]);
+    free(block_list);
+
+    return resamples;
+}    
