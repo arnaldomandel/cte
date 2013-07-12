@@ -1,0 +1,150 @@
+\documentclass[brazil,11pt]{article}
+\usepackage[brazil]{babel}
+\usepackage[latin1]{inputenc}
+\usepackage{amsmath}
+
+\author{Karina Yaginuma \and Andr\'e Onuki dos Santos}
+\title{Context Tree Estimation - Algorithm}
+
+\begin{document}
+
+\maketitle
+
+The algorithm is divided in three parts: BIC Tree Calculation, Champion Tree Set Calculation and Bootstrapping.
+
+The BIC Tree Calculation will be used many times to calculate the Champion Tree Set. Then this set is applied to the bootstrap procedure.
+
+\section{BIC Tree Calculation}
+
+Since this procedure is repeatedly called to search for the Champion Tree Set, some data which will alway be the same are pre calculated.
+
+\begin{tabular}{rl}
+Input: & Sample(s) ``$X^n_1$''\\
+& the starting constant ``$c > 0$''\\
+&maximum depth ``$d$''
+\end{tabular}
+
+\subsection{Pre Calculations}
+
+For every string $w$ that:
+
+\begin{equation}
+l(w) \leq d
+\end{equation}
+
+\begin{equation}
+\sum_{a \in A} Nn(wa) > 0
+\end{equation}
+
+Where $l(w)$ is the length of the string $w$ and Nn(w) is the number of times that $w$ occurs in the sample.
+
+Calculate:
+\begin{equation*}
+L_w(X^n_1) = \prod_{a \in A} \hat{p}_n(a|w)^{N_n(wa)}
+\end{equation*}
+and
+\begin{equation*}
+df(w) = \sum_{a \in A} \chi(wa)
+\end{equation*}
+
+
+\subsection{Final Calculation}
+
+
+
+
+\subsection{Implementation}
+
+The population of the trees and the Pre Calculations are implemented in the \emph{bic\_setup.c} file, specifically in the function \emph{setup\_BIC}. The Final Calculation in the \emph{bic\_calculation.c} file, in the function \emph{calculate\_BIC}.
+
+To perform the calculations, data is saved in two trees. The first called Prob Tree holds the letters from the sample in the conventional way, meaning that a child node came in the sample after its parent node. The other three, called Bic Tree, holds letter reversed, the letter from a child node came before the one on its parent node. Both trees are populated by reading every ``$d$'' sized word in the sample. So the filters described in ``Pre Calculations'' are already applied.
+
+\subsubsection{Populating the trees}
+
+To populate the Prob Tree, take each sample, on each samples, for each letter, take the word composed by this letter and the ``d + 1'' next letters, where ``d'' is the desired depth, or max size of word, as given in the input.
+
+Take the root node of the Prob Tree as your current node, and get its child node corresponding to the first symbol of the word. Set this node as the current node, add 1 to its number of occurrences and repeat the process, using the current node and the further symbols.
+
+The BIC Tree is populated in the same manner, but the word is read from right to left.
+
+\subsubsection{Pre Calculations}
+
+The Prob Tree is constructed this way so it eases the calculation of the probabilities of each node. The probability of a node ``110'' means $\hat{p}(0|11)$. So to calculate the probability of a node, just take the number of its occurrences and divide by the sum of occurrences of its siblings plus itself. To traverse one node's siblings, go to its father, take its child, which is the first sibling (or in some cases the same node) and then traverse through the siblings pointer.
+
+To calculate the degrees of freedom, just count the number of children one node has. Traversing his children in the same manner used to calculate the probability.
+
+After the degrees of freedom and probabilities are calculated, the $Lw$ can be calculated in a manner close to the calculation of degrees of freedom.
+
+\subsubsection{Final Calculation}
+
+This part of the BIC tree calculation depends on a cost (or penalty). Whereas the pre calculations and independent of cost and thus are calculated only once, the final calculation is called many times, to discover the champion tree set. Each time it is called, a different cost is given.
+
+This calculation is implemented in the \emph{bic\_calculator.c} file. First thing it does is calculate the $V_w(X^n_1)$ and $\delta_w(X^n_1)$. Then it does a depth search in the BIC tree, searching for a node with $\delta_w(X^n_1) = 0$. The word represented by this node is added to the tree, its children are ignored and the search continues on siblings and other nodes. The children of such a node can be ignored because they will have a suffix with $\delta_w(X^n_1) = 0$, which are meant to be discarded.
+
+\section{Champion Tree Set Calculation}
+
+The calculated $\hat{\tau}_{BIC}(X^n_1, c)$ is stable for ranges of c. It is desired to calculate all different trees for the range 0..max where $max > 0$ and $\hat{\tau}_{BIC}(X^n_1, max)$ is the root tree.
+
+\subsection{Implementation}
+
+The champion tree set calculation is implemented in \emph{champion\_set.c}. This module interacts mostly with the \emph{bic.h} interface to calculate each $\hat{\tau}_{BIC}$ and uses the \emph{tau.h} interface to store its data. To calculate each $\hat{\tau}_{BIC}(X^n_1, c)$, this module uses the \emph{calculate\_BIC(c)} in \emph{bic.h}. This function is described in Final Calculation on the previous section.
+
+First it calculates the $\hat{\tau}_{BIC}(X^n_1, 0)$ and $\hat{\tau}_{BIC}(X^n_1, c)$, the later one is stored for the final result.
+
+Then the outer most loop makes sure we calculate other BICs while the last stored $\hat{\tau}_{BIC}$ is different of $\hat{\tau}_{BIC}(X^n_1, 0)$. Whenever this happens, there should not be any more $\hat{\tau}_{BIC}$ to be calculated.
+
+Inside this loop, the next $\hat{\tau}_{BIC}$ is calculated. For that, first the min and max boundaries are set to 0 and the c of the last calculated $\hat{\tau}_{BIC}$ respectively. Here there is an invariant that $\hat{\tau}_{BIC}(X^n_1, min)$ is different from $\hat{\tau}_{BIC}(X^1_n, max)$ and this last one is equals to the last $\hat{\tau}_{BIC}$ stored.
+
+Inside the inner loop, the ``mid'' point as $min + (max - min) / 2$, which is the same as $(min + max) / 2$ but without the risk of overflowing. Then the $\hat{\tau}_{BIC}(X^n_1, mid)$ is calculated. If it is equals to the last stored $\hat{\tau}_{BIC}$, max is set to mid, keeping the invariant valid. If it is different of the last stored $\hat{\tau}_{BIC}$, min is set to mid, also keeping the invariant valid.
+
+This binary search procedure is repeated until $max - min < \epsilon$, when a new $\hat{\tau}_{BIC}(X^n_1, min)$ is calculated and added to the set.
+
+This whole procedure is repeated until the last stored $\hat{\tau}_{BIC}$ is the same as $\hat{\tau}_{BIC}(X^n_1,0)$, when the set is returned.
+
+\section{Bootstrapping}
+
+\subsection{Implementation}
+
+The bootstrapping procedure was divided in resampling and bootstrap calculation.
+
+\subsubsection{Resampling}
+
+First it is needed to find the most frequent word of length ``d''. For that, the Prob Tree is traversed and whenever a node has depth ``d'', it is checked if it occurred more times than the current most frequent. If so, it becomes the current most frequent and search continues. When no more nodes are left, the current most frequent word is returned.
+
+Then the first occurrence of the word is searched on the sample. Then for each occurrence after the first, everything between the last occurrence and the current is added to the $\omega$ set. To search for the word in the sample, a version of the Knuth-Morris-Pratt algorithm was implemented at \emph{kmp.c}. There is an addition that is the initial index to start the search, so the second and next occurrences can be searched.
+
+
+\subsubsection{Bootstrap calculation}
+
+Implemented in file \emph{bootstrap.c}. The bootstrap function will cycle through the trees checking if they pass the t-student test by supplying the \emph{accept\_tree} function. The \emph{accept\_tree} function delegates the calculation of $\Delta^{(\tau_i,\tau_{i+1})}(n_x,b)$ then calculates $t_{B-1}$ which is to be checked with the t-student test. This check is not implemented, so the \emph{accept\_tree} function prints the $t_{B-1}$ value and returns false, so the \emph{bootstrap} function resumes calculation for the next tree.
+
+Calculation of $\Delta^{(\tau_i,\tau_{i+1})}(n_x,b)$ is done by the \emph{delta\_tau} function. It delegates the calculation of the $L_w$ to the \emph{bic\_setup} function, used earlier for the Pre Calculations step. Then it delegates the calculation of the $L_\tau$ to the \emph{L\_tau} function, which is implemented in the \emph{bic\_setup.c} file. With these results, the \emph{delta\_tau} function finishes the calculations and returns the result.
+
+Unfortunately, $L_\tau(X^n_1)$ usually returns very small values, in the range of $10^{-300}$ to $10^{-100}$. Then $\log L_\tau(X^n_1)$ approaches minus infinity, which can't be calculated using C's double precision floating point numbers. And every calculation after that returns nan (not a number).
+
+
+\section{Other Implementation Details}
+
+To compile the program, one should run: ``make all'' in the base directory. The compiled program, \emph{cte}, will be in the bin directory, among other test programs.
+
+
+
+\subsection{tree.h}
+
+The calculations are very dependent on the Prob Tree and BIC Tree. The node structure has pointers for its parent, first child and siblings. So to traverse through all children of a node, you follow its child pointer, then follow the sibling pointer while it is not NULL. This representation was chosen for ease of implementation since it is not known beforehand how many children each node will have.
+
+Another detail on trees is that most calculations done on it uses recursion to calculate children and siblings, before or after the calculation of the current node, depending on the necessity of the data to calculate for the current node.
+
+\subsection{read\_file.c}
+ 
+In \emph{read\_file.c} is the implementation of the sample reading algorithm.
+
+In C, there is no way to read a complete line regardless of its size. The only way is to use the \emph{fgets} functions which will write to a buffer up till it finds a line break (``/n'') or up to a given number of characters have been read.
+
+So whenever each part of a sample is read, it goes to a buffer, the size of the buffer is read, then more memory is added to a string onto which the buffer will be concatenated.
+
+This prevents lines from having a maximum size and allocating more memory than necessary to accommodate the sample.
+
+
+
+\end{document}
