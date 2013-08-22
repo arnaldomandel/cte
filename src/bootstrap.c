@@ -1,7 +1,7 @@
 /*
  * bootstrap.c
  */
-/* Time-stamp: <2013/06/08 08:32:39 hutzpa [hutzpa] am> */
+/* Time-stamp: <2013/08/21 14:21:12 benavuya.ime.usp.br [benavuya] am> */
 #include "glob.h"
 #include "bic.h"
 #include "tau.h"
@@ -14,7 +14,7 @@
 // definition of functions implemented below
 int accept_tree(Resamples resample, Tau current_tree, Tau next_tree);
 void delta_tau(Resamples res, Tau current_tree, Tau next_tree, datapoint **deltatau, datapoint **ddeltatau);
-double threshold(int size);
+// double threshold(int size);
 void get_pre_trees(Resamples res, int depth) ;
 void append_L_data(Tree_node node, Resamples res);
 siz_by_samp L_tau_mat(Tau tau, Resamples res);
@@ -217,6 +217,8 @@ siz_by_samp L_tau_mat(Tau tau, Resamples res)
 }
 
 
+
+//  Deprecated
 double threshold(int size)
 {
     return pow(size, 0.9);

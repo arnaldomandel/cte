@@ -1,4 +1,4 @@
-/* Time-stamp: <2013/06/17 16:12:29 hutzpa [hutzpa] am> */
+/* Time-stamp: <2013/08/21 14:23:56 benavuya.ime.usp.br [benavuya] am> */
 #include <stdlib.h>
 #include "stats.h"
 #include "glob.h"
@@ -80,29 +80,6 @@ datapoint av_and_dev(double *v, int n)
 }
 
 
-/* 
- * Linear regression coefficient for numbers indexed from 1 to n-1
- */
-double regress(double *y, int n)
-{
-    double val = 0;
-    for(int i = 1; i < n; i++)
-	val += (2*i - n) * y[i];
-    return 12 * val /(n * (n-1) * (n-2));
-}
-
-int sum_i(int n)
-{
-    return n*(n+1)/2;
-}
-
-int sum_i2(int n)
-{
-    int s = 0;
-    for(int i = 1; i <= n; i++)
-	s += i*i;
-    return s;
-}
 
 /* 
  * Returns the regression coefficent beta for numbers indexed from 1 to n-1,
@@ -159,4 +136,31 @@ double tvalue(double conf, int df)
 double p_value(double t, int df)
 {
     return 2*gsl_cdf_tdist_P(-t, df);
+}
+
+
+// Not used
+
+/* 
+ * Linear regression coefficient for numbers indexed from 1 to n-1
+ */
+double regress(double *y, int n)
+{
+    double val = 0;
+    for(int i = 1; i < n; i++)
+	val += (2*i - n) * y[i];
+    return 12 * val /(n * (n-1) * (n-2));
+}
+
+int sum_i(int n)
+{
+    return n*(n+1)/2;
+}
+
+int sum_i2(int n)
+{
+    int s = 0;
+    for(int i = 1; i <= n; i++)
+	s += i*i;
+    return s;
 }

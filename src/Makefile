@@ -1,10 +1,20 @@
-# Time-stamp: <2013/05/28 11:40:54 benavuya.ime.usp.br [benavuya] am>
+# Time-stamp: <2013/08/21 17:44:00 benavuya.ime.usp.br [benavuya] am>
 CC= c99
-CFLAGS= -Wall -g -pg -D_XOPEN_SOURCE=700
+#ifdef graph
+#	RTL=-fdump-rtl-expand
+#endif
+CFLAGS= -Wall -g -pg -D_XOPEN_SOURCE=700 $(RTL)
 LDFLAGS= -lm -lgsl -lgslcblas #-lalglib -lstdc++
 #LDFLAGS= -lm -lalglib -lstdc++
 
 all: ../bin/cte ../bin/champ_test ../bin/simula ../bin/generate
+
+# generate call graph as call.pdf
+# requires egypt and dot (graphviz)
+graph:
+	make clean
+	make RTL=-fdump-rtl-expand
+	egypt *.expand | dot -Tpdf -o call.pdf
 
 tests:  bic_test kmp_test maxfreq_test
 	$(MAKE) -C test allo
@@ -49,7 +59,7 @@ alglibinternal.o: alglib/alglibinternal.cpp
 	g++    -c -o $@ $^
 
 clean:
-	rm -f *.o
+	rm -f *.o *.expand
 	rm -f test/*.o
 	rm -f ../bin/*
 

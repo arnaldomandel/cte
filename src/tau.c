@@ -1,7 +1,7 @@
 /*
  * Implementation of methods declared in tau.h
  */
-/* Time-stamp: <2013/05/26 17:33:23 hutzpa [hutzpa] am> */
+/* Time-stamp: <2013/08/21 14:23:25 benavuya.ime.usp.br [benavuya] am> */
 
 #include "glob.h"
 #include "tau.h"
@@ -73,19 +73,6 @@ void free_Tau(Tau t) {
     t = NULL;
 }
 
-
-/*
- * returns the number os items in the given tau
- */
-int items_in_Tau(Tau t) {
-  int items = 0;
-
-  // while (item != NULL) {
-  ITERA(Tau_item, item, t->item, next)
-    items++;
-
-  return items;
-}
 
 /*
  * Verifies if both taus are equals, ie, have the same words.
@@ -160,3 +147,17 @@ void fpprint_Tau(FILE *f, Tau tau, double L0) {
 }
 
 	     
+// Deprecated
+
+/*
+ * returns the number os items in the given tau
+ */
+int items_in_Tau(Tau t) {
+  int items = 0;
+
+  // while (item != NULL) {
+  ITERA(Tau_item, item, t->item, next)
+    items++;
+
+  return items;
+}

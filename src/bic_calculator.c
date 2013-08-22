@@ -1,7 +1,7 @@
 /*
  * Methods for calculating the bic tree given a cost.
  */
-/* Time-stamp: <2013/05/10 18:55:23 benavuya.ime.usp.br [benavuya] am> */
+/* Time-stamp: <2013/08/21 14:21:31 benavuya.ime.usp.br [benavuya] am> */
 #include "glob.h"
 #include "tau.h"
 #include "tree.h"
@@ -142,30 +142,6 @@ double recover_prob(Tree_node pre_node, char* suffix) {
     return node_of_word(pre_node, suffix)->p.probability;
 }
 
-/*
- * Returns the child of the given node which occurred the most.
- * If the depth of the node is max_word_size, then return the node.
- */
-Tree_node most_frequent_child(Tree_node pre_node) {
-  if (node_depth(pre_node) == max_word_size) 
-    return pre_node;
-
-  int max = 0;
-  Tree_node max_node;
-  Tree_node current_node = pre_node->child;
-
-  while (current_node != NULL) {
-    Tree_node max_child = most_frequent_child(current_node);
-    if (max_child->p.occurrences > max) {
-      max = max_child->p.occurrences;
-      max_node = max_child;
-    }
-    current_node = current_node->sibling;
-  }
-  return max_node;
-}
-
-
 	
 Tree_node most_frequent_leaf(Tree_node pre_node)
 {
@@ -220,3 +196,34 @@ double Lw(Tree_node pre_tree, char * w)
  *   return value;
  * }
  */
+
+
+/* 
+ * *
+ *  Deprecated  **********************************
+ * *
+ */
+
+/*
+ * Returns the child of the given node which occurred the most.
+ * If the depth of the node is max_word_size, then return the node.
+ */
+Tree_node most_frequent_child(Tree_node pre_node) {
+  if (node_depth(pre_node) == max_word_size) 
+    return pre_node;
+
+  int max = 0;
+  Tree_node max_node;
+  Tree_node current_node = pre_node->child;
+
+  while (current_node != NULL) {
+    Tree_node max_child = most_frequent_child(current_node);
+    if (max_child->p.occurrences > max) {
+      max = max_child->p.occurrences;
+      max_node = max_child;
+    }
+    current_node = current_node->sibling;
+  }
+  return max_node;
+}
+

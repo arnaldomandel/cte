@@ -21,4 +21,4 @@ Tau:
   This is a finite set of words, that is an antichain in the suffix order.
   They are represented as a linked list of nodes pointed by type Tau_item, and
   have a head pointed by type Tau.  The list is in revlex order.
-  Impemented in tau.[ch].
+  Implemented in tau.[ch].

@@ -1,0 +1,25 @@
+#!/usr/bin/perl
+# Time-stamp: <2013/08/06 18:15:44 benavuya.ime.usp.br [benavuya] am>
+
+@stack = [];
+while (<>) {
+  my ($gen, $n1, $n2) = split /,/;
+  if ($gen != 0) {
+    push @stack, [$gen, "x"];
+  }
+  if ($n1 != 0) {
+    push @stack, [$n1, "1"];
+  }
+  if ($n2 != 0) {
+    push @stack, [$n2, "2"];
+  }
+}
+
+sub firstc {
+  $a->[0] <=> $b->[0];
+}
+
+
+
+
+print map {$_->[1]}  sort firstc @stack;

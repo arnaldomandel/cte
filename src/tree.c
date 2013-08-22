@@ -1,7 +1,7 @@
 /*
  * Implementation of the digital tree methods.
  */
-/* Time-stamp: <2013/06/17 15:41:42 hutzpa [hutzpa] am> */
+/* Time-stamp: <2013/08/21 14:20:26 benavuya.ime.usp.br [benavuya] am> */
 
 #include "glob.h"
 #include "tree.h"
@@ -157,12 +157,6 @@ int tree_size(Tree_node root)
 }
 
 
-/* Deprecated, keep depth as a node property */
-int node_depth(Tree_node node) {
-    return node->depth;
-}
-
-
 
 /* 
  * Iterator for nodes at a given depth.  Returns NULL at the end.
@@ -285,3 +279,12 @@ void rec_fprint_tree_probs(FILE *file, Tree_node pre_tree, char* given_label, in
     
     rec_fprint_tree_probs(file, pre_tree->sibling, given_label, depth);
 }
+
+
+
+
+/* Deprecated, keep depth as a node property */
+int node_depth(Tree_node node) {
+    return node->depth;
+}
+
