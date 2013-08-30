@@ -1,0 +1,298 @@
+
+bic.h,68
+#define BIC_H_6,140
+#define BOTH 12,193
+#define JUST_PROB 13,208
+
+bic_calculator.c,346
+inline double node_part(26,550
+Tau calculate_BIC(33,778
+void get_v(48,1118
+inline double node_part(88,2256
+double children_part(98,2576
+void add_selected_words_to_tau(115,2888
+double recover_prob(141,3581
+Tree_node most_frequent_leaf(146,3700
+char* most_frequent_word(164,4109
+double Lw(171,4289
+Tree_node most_frequent_child(211,5167
+
+bic_setup.c,462
+int max_word_size;12,204
+int sample_size;13,223
+double logN;14,240
+double scale 15,253
+void setup_BIC(43,1282
+void create_pre(85,2397
+void create_suf(98,2895
+int size_of_sample(111,3377
+int max_possible_nodes(127,3726
+void calculate_probabilities(145,4209
+void set_degrees_freedom(163,4638
+void set_probability(184,5256
+void calculate_ell(203,5783
+Tree_node get_pre_node(228,6420
+void set_mate(237,6705
+double Max_c(260,7321
+double Eps(268,7559
+
+bootstrap.c,216
+Tau bootstrap(32,964
+void delta_tau(116,4103
+void get_pre_trees(146,5249
+siz_by_samp matrix(165,5860
+void freemat(175,6100
+void append_L_data(188,6317
+siz_by_samp L_tau_mat(207,6868
+double threshold(222,7253
+
+bootstrap.h,28
+#define BOOTSTRAP_H_10,157
+
+champ_test.c,17
+int main(23,435
+
+champion_set-increase.c,223
+#define D(15,255
+#define L(16,303
+int champ_method 22,460
+Champion_item champion_set_prunning(30,743
+void get_next_min_node(118,3378
+Champion_item champion_set_minimizing(202,5701
+Champion_item champion_set(261,7507
+
+champion_set.c,223
+#define D(15,255
+#define L(16,303
+int champ_method 22,460
+Champion_item champion_set_prunning(30,743
+void get_next_min_node(116,3282
+Champion_item champion_set_minimizing(200,5605
+Champion_item champion_set(257,7315
+
+champion_set.h,170
+#define CHAMPION_SET_H_3,83
+typedef struct champion_item *Champion_item;Champion_item6,109
+struct champion_item 11,270
+  Tau tau;12,293
+  Champion_item next;13,304
+
+draw.c,175
+Tree_node tau_to_tree(12,256
+char *synttree_string(synttree_string24,547
+char *qtree_string(qtree_string41,963
+void print_as_string(69,1503
+void fprint_as_tree(85,1771
+
+draw.h,52
+enum tex_tree_type 3,75
+    SYNT,4,96
+    Q5,106
+
+generate.c,55
+void usage(6,75
+char randchar(10,93
+int main(15,148
+
+glob.c,308
+Filename jobname;9,286
+char real_filename[real_filename12,415
+unsigned int depth 13,445
+unsigned int number_resamples 14,469
+unsigned int num_sizes 15,505
+unsigned int seed 16,533
+char *renewalstr renewalstr17,556
+double confid 18,581
+char *alphabet alphabet20,603
+char issymbol[issymbol22,691
+
+glob.h,278
+#define DEBUG 10,192
+#define ITERA(12,209
+#define DEB(14,285
+#define DEBS(15,365
+#define mess(16,429
+#define mesg(17,491
+#define MEM(21,606
+#define MEMPZ(24,728
+#define MEMTZ(26,816
+#define OPEN(28,903
+#define TIMESTAMP 30,990
+typedef char Filename[Filename35,1248
+
+main.c,45
+int main(33,762
+void make_jobname(218,6242
+
+messages.c,43
+void fatal_error(9,194
+void usage(31,736
+
+messages.h,131
+#define MESSAGES_H_6,139
+enum Error_code 13,197
+  FILE_NOT_FOUND 14,215
+  MISSING_FILENAME 15,237
+  UNABLE_TO_RESAMPLE 16,261
+
+params.h,99
+int erropt 3,37
+#define IOPT(4,53
+#define FOPT(12,207
+#define SOPT(20,361
+#define NOPT(30,551
+
+read_file-new.c,134
+#define BUFFER_SIZE 8,145
+char *myfgets(myfgets10,175
+char* read_line(27,506
+char** read_lines(75,1632
+void free_lines(118,2619
+
+read_file-was.c,103
+#define BUFFER_SIZE 8,145
+char* read_line(14,327
+char** read_lines(54,1305
+void free_lines(88,2057
+
+read_file.c,103
+#define BUFFER_SIZE 8,145
+char* read_line(14,327
+char** read_lines(54,1305
+void free_lines(88,2063
+
+read_file.h,27
+#define READ_FILE_H_6,131
+
+resample.c,128
+#define random_num(18,298
+char *gen_sample(gen_sample23,447
+Resamples resample_rand(36,952
+Resamples resample_ext(129,3983
+
+resample.h,433
+#define RESAMPLE_H_10,155
+#define NUM_SIZES 12,176
+#define LARGE_SAMPLE 15,274
+#define SMALL_SAMPLE 16,299
+#define MIN_BLOCKS 19,381
+typedef struct resamples * Resamples;21,405
+struct samples 23,444
+    int size;25,462
+    char **sample;sample26,476
+    Tree_node * tree;27,544
+struct resamples 35,809
+    struct samples s[s37,829
+    int num_sizes;38,862
+    int num_resamples;39,881
+    Tree_node orig_tree;40,904
+
+simula.c,258
+#define BUFSIZE 15,348
+int main(20,378
+Tree_node node_of_max_suffix(81,1922
+char next_char(95,2256
+Tree_node get_create_node_of_suffix(120,2956
+Tree_node parse_prob(127,3168
+Tau choose_tau_from_champ(153,3712
+void prune(179,4242
+void usage(192,4550
+
+stats.c,296
+static int compar_abs(12,307
+double avg(18,419
+double var(27,643
+double stddev(42,937
+datapoint med_and_quart(47,1002
+datapoint av_and_dev(63,1277
+void full_regress(103,2330
+double tvalue(128,2942
+double p_value(136,3096
+double regress(147,3261
+int sum_i(155,3418
+int sum_i2(160,3462
+
+stats.h,132
+typedef struct datapoint 3,19
+    double val,5,47
+    double val, vlow,5,47
+    double val, vlow, vhigh;5,47
+}  datapoint;6,76
+
+tau.c,208
+void insert_tau_item(29,604
+Tau_item new_tau_item(41,860
+Tau new_Tau(53,1144
+void free_Tau(65,1355
+int equals_Tau(114,2551
+void fprint_Tau(127,2846
+void fpprint_Tau(134,3093
+int items_in_Tau(155,3616
+
+tau.h,326
+#define TAO_H_7,201
+typedef struct tau *Tau;Tau9,217
+typedef struct tau_item *Tau_item;Tau_item10,242
+struct tau 12,278
+    Tau_item item,13,291
+    Tau_item item, last;13,291
+    double c;14,316
+    double L;15,330
+struct tau_item 18,348
+  char* string;19,366
+  double probability;20,382
+  Tau_item next;21,404
+
+tree.c,617
+Tree_node get_create_child_node(16,443
+Tree_node create_child_node(45,1201
+Tree_node Tree_create(57,1485
+void free_node(66,1641
+Tree_node get_child_node(77,1880
+Tree_node new_Tree_node(93,2415
+void print_node(99,2563
+void print_tree(112,3045
+void rec_print_tree(122,3314
+int degree(138,3699
+int tree_size(149,3855
+Tree_node next_node_depth(165,4103
+Tree_node node_of_word(189,4537
+Tree_node node_of_suffix(196,4706
+char* word_of_node(230,5417
+char* suffix_of_node(241,5743
+void fprint_node_probs(252,6096
+void fprint_tree_probs(261,6359
+void rec_fprint_tree_probs(266,6485
+int node_depth(287,7032
+
+tree.h,887
+#define TREE_H_8,308
+typedef struct tree_node *Tree_node;Tree_node10,325
+typedef struct pre_data *Pre_data;Pre_data11,362
+typedef struct suf_data *Suf_data;Suf_data12,397
+typedef struct ell_data *L_data;L_data13,432
+typedef double **siz_by_samp;siz_by_samp16,557
+struct pre_data 21,687
+    int occurrences;22,705
+    int df;23,738
+    double probability;24,750
+    double ell;25,774
+    siz_by_samp L;27,827
+struct suf_data 33,920
+    double v;34,938
+    int critical;35,952
+    double lsum;36,970
+    int dfsum;37,987
+    Tree_node mate;38,1002
+enum node_type 42,1027
+    PRE,43,1044
+    SUF44,1053
+struct tree_node 50,1100
+    unsigned char type;51,1119
+    unsigned char symbol;52,1143
+	struct pre_data p;57,1216
+	struct suf_data s;58,1253
+    int depth;62,1327
+    Tree_node child;63,1342
+    Tree_node sibling;64,1363
+    Tree_node parent;65,1386

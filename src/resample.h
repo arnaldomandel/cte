@@ -5,7 +5,7 @@
  *      Author: onuki
  */
 
-/* Time-stamp: <2013/05/26 23:35:38 hutzpa [hutzpa] am> */
+/* Time-stamp: <2013/08/30 15:58:25 benavuya.ime.usp.br [benavuya] am> */
 #ifndef RESAMPLE_H_
 #define RESAMPLE_H_
 
@@ -24,7 +24,7 @@ struct samples
 {
     int size;
     char **sample;       // a vector of strings, all of length size
-    Tree_node * tree;   // a vector of prob trees; thos vectors are parallel, length is num_resamples
+    Tree_node * tree;   // a vector of prob trees; those vectors are parallel, length is num_resamples
 };
     
 /* 

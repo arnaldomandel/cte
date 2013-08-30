@@ -1,4 +1,4 @@
-# Time-stamp: <2013/08/21 17:44:00 benavuya.ime.usp.br [benavuya] am>
+# Time-stamp: <2013/08/29 16:49:07 benavuya.ime.usp.br [benavuya] am>
 CC= c99
 #ifdef graph
 #	RTL=-fdump-rtl-expand
@@ -7,7 +7,7 @@ CFLAGS= -Wall -g -pg -D_XOPEN_SOURCE=700 $(RTL)
 LDFLAGS= -lm -lgsl -lgslcblas #-lalglib -lstdc++
 #LDFLAGS= -lm -lalglib -lstdc++
 
-all: ../bin/cte ../bin/champ_test ../bin/simula ../bin/generate
+all: ../bin/cte ../bin/champ_test ../bin/simula ../bin/generate TAGS
 
 # generate call graph as call.pdf
 # requires egypt and dot (graphviz)
@@ -18,6 +18,9 @@ graph:
 
 tests:  bic_test kmp_test maxfreq_test
 	$(MAKE) -C test allo
+
+TAGS:
+	etags -o TAGS *.[hc]
 
 ../bin/cte: main.o messages.o read_file.o tau.o bic_setup.o bic_calculator.o champion_set.o tree.o resample.o bootstrap.o draw.o glob.o stats.o
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)

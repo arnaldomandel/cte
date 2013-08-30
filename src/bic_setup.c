@@ -1,7 +1,7 @@
 /*
  * Methods for setup of the bic_calculator.
  */
-/* Time-stamp: <2013/05/11 09:26:24 hutzpa [hutzpa] am> */
+/* Time-stamp: <2013/08/29 16:53:03 benavuya.ime.usp.br [benavuya] am> */
 #include "glob.h"
 #include "bic.h"
 #include "tree.h"
@@ -198,7 +198,7 @@ void set_probability(Tree_node* node) {
 
 
 /*
- * Method that calculates ell for the given node, its siblings and children.
+ * Calculates ell for the given node, its siblings and children.
  */
 void calculate_ell(Tree_node pre_node) {
   // defense against null node, pre-data
