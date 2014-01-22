@@ -1,0 +1,46 @@
+#!/bin/bash
+# Time-stamp: <2013/06/17 14:50:10 hutzpa [hutzpa] am>
+
+filelist=""
+range=""
+init="set term x11 size 1200,800;set sty data lp;set macros"
+while [ $# != 0 ]
+do
+    case $1 in
+	-r) shift
+	    range="set xrange[$1]"
+	    ;;
+	*)  if [ -z "$filelist" ]
+	    then
+		filelist="\\\"${1%.reg}.reg\\\" using 2,\\\"${1%.reg}.reg\\\" using 1:2:3 with yerrorbars"
+	    else
+		filelist=$filelist,"\\\"${1%.reg}.reg\\\" using 2,\\\"${1%.reg}.reg\\\" using 1:2:3 with yerrorbars"
+	    fi
+	    ;;
+	esac
+    shift
+done
+
+
+if [ -z "$filelist" ]
+then
+    echo "Usage: plotreg [-r range] file file ...
+      Plots .reg files.
+
+      Options:               [default]
+        -r  range     Gnuplot xrange for graphs [auto]
+"
+    exit
+fi
+
+filelist=$filelist,'0 with lines lc rgb \"yellow\"'
+echo $filelist
+#echo file $file hasout $hasout col $col From $From
+
+exec gnuplot -e "$init; $range;eval \"plot $filelist\";\
+                 print \"\nUse:\n  replot for new plots\n  set xrange and set yrange for focus\n\"" -
+
+#@exec gnuplot -e "$init; $range;pl=\"plot $filelist\";eval \"@pl\";print \"\nUse:\n  replot for new plots\n  set xrange and set yrange for focus\n\"" -
+
+#gnuplot -e "file=\"$file\";col=$col;$hasout;From=$From;To=$To;Inc=$Inc;Npp=$Npp;Delta=$Delta;\
+#            print file, col, nofile, From, To, Inc, Npp, Delta" #plotdl.gp
