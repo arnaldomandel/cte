@@ -1,10 +1,10 @@
-# Time-stamp: <2013/08/29 16:49:07 benavuya.ime.usp.br [benavuya] am>
+# Time-stamp: <2014/01/22 16:33:00 benavuya.ime.usp.br [benavuya] am>
 CC= c99
 #ifdef graph
 #	RTL=-fdump-rtl-expand
 #endif
 CFLAGS= -Wall -g -pg -D_XOPEN_SOURCE=700 $(RTL)
-LDFLAGS= -lm -lgsl -lgslcblas #-lalglib -lstdc++
+LDFLAGS= -lm #-lgsl -lgslcblas #-lalglib -lstdc++
 #LDFLAGS= -lm -lalglib -lstdc++
 
 all: ../bin/cte ../bin/champ_test ../bin/simula ../bin/generate TAGS
@@ -22,7 +22,7 @@ tests:  bic_test kmp_test maxfreq_test
 TAGS:
 	etags -o TAGS *.[hc]
 
-../bin/cte: main.o messages.o read_file.o tau.o bic_setup.o bic_calculator.o champion_set.o tree.o resample.o bootstrap.o draw.o glob.o stats.o
+../bin/cte: main.o messages.o read_file.o tau.o bic_setup.o bic_calculator.o champion_set.o tree.o resample.o bootstrap.o draw.o glob.o #stats.o
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 ../bin/simula: simula.o read_file.o tau.o tree.o glob.o
@@ -38,7 +38,7 @@ main.o: main.c read_file.h bic.h tau.h champion_set.h bootstrap.h messages.h glo
 messages.o: messages.c messages.h glob.h
 read_file.o: read_file.c glob.h
 resample.o: resample.c bic.h messages.h glob.h
-bootstrap.o: bic.h tau.h champion_set.h bootstrap.h glob.h stats.h
+bootstrap.o: bic.h tau.h champion_set.h bootstrap.h glob.h #stats.h
 tau.o: tau.c tau.h glob.h 
 tree.o: tree.c tree.h glob.h
 vec.o: vec.c vec.h glob.h
@@ -47,7 +47,7 @@ draw.o: draw.c glob.h tau.h tree.h
 glob.o: glob.c glob.h
 simula.o: simula.c glob.h tree.h tau.h read_file.h
 generate.o: glob.h params.h
-stats.o: stats.c stats.h
+#stats.o: stats.c stats.h
 
 # alglib
 specialfunctions.o: alglib/specialfunctions.cpp

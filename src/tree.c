@@ -1,7 +1,7 @@
 /*
  * Implementation of the digital tree methods.
  */
-/* Time-stamp: <2013/08/21 14:20:26 benavuya.ime.usp.br [benavuya] am> */
+/* Time-stamp: <2014/01/21 15:30:38 benavuya.ime.usp.br [benavuya] am> */
 
 #include "glob.h"
 #include "tree.h"
@@ -251,11 +251,13 @@ char* suffix_of_node(Tree_node suf_node) {
 
 void fprint_node_probs(FILE *file, Tree_node pre_node, char* label, int depth) 
 {
-    fprintf(file, "%-*s -", depth+1, label+1);
-    ITERA(Tree_node, t, pre_node->child, sibling)
-	fprintf(file, " %c:%f", t->symbol, t->p.probability);
-    fprintf(file, "\n");
-}
+    if (pre_node->child) {
+	fprintf(file, "%-*s -", depth+1, label+1);
+	ITERA(Tree_node, t, pre_node->child, sibling)
+	    fprintf(file, " %c:%f", t->symbol, t->p.probability);
+	fprintf(file, "\n");
+    }
+ }
 
 
 void fprint_tree_probs(FILE *file, Tree_node pre_tree, int depth) 

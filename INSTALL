@@ -1,0 +1,19 @@
+cte can be compiled with gcc v 4.7.2 and up.
+On the main directory (or on src), type make, and that's it.
+The executables are in the bin directory
+
+Some scripts require additional files/programs.
+Both dotree and showtrees use adobe reader for display; other readers may
+perform as well.
+   dotree (a perl script) requires dot, from the graphwiz package
+   	     http://www.graphviz.org/
+   	  (also available in most Linux distributions).
+	  
+   showtrees (bash script) requires LaTeX and the qtree package
+   	     http://www.ctan.org/pkg/qtree
+
+For convenience, a directory named results is provided with a .paths file.
+Sourcing it ( executing   . .paths   in most shells) will add the bin and
+script directories to the current PATH,
+
+   

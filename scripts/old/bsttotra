@@ -1,0 +1,36 @@
+#!/usr/bin/perl
+#Time-stamp: <2013/09/11 17:09:46 benavuya.ime.usp.br [benavuya] am>
+
+die "Needs filename.\n" if (!@ARGV);
+
+($job = $ARGV[0]) =~ s/.bst$//;
+
+$infile = $job . ".bst";
+open IN, "<$infile";
+$outfile = $job . ".tra";
+open OUT, ">$outfile";
+
+sub parse_block {
+  my @a;
+  while (<IN>) {
+    last if (/^\s*$/);
+    my ($val, $rest) = split;
+    #print "$val\n";
+    push @a, $val;
+  }
+  return @a;
+}
+
+while (<IN>) {
+  next if (/^#/);
+  push @mat, [parse_block] if (/^\s*$/);
+}
+
+print "$#mat ", length $mat[0],"\n";
+
+for ($i = 0; $i < $#mat-1; $i++) {
+  for $j (0..length $mat[0]) {
+    print OUT $mat[$i][$j]/$mat[$i+1][$j], " " if $mat[$i+1][$j];
+  }
+  print OUT "\n";
+}

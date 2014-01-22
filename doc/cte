@@ -1,0 +1,80 @@
+Usage
+   cte -f file [OPTION]...
+
+   file is a mandatory filename argument.
+
+Description
+   Generate the champion context trees modelling the given file.  The file is
+   treated as a string of one byte chars.
+
+   Optionally, resamples the file at different sizes and registers the
+   log-loss of each sample when modelled by each tree.
+
+   Mandatory arguments to long options are mandatory for short options too.
+   Within brackets, the default value for each option.
+
+   -d, --depth=n
+       Maximum depth for contexts [5]
+
+   -j, --job-name=name
+       All generated files will be named name.ext, for different extensions.
+       name can be any string, with special constructors escaped by a '%',
+       most of them just parameter values:
+          f - the filename, stripped of directory components
+	  d - depth
+	  r - renewal-string
+	  n - number-samples
+	  s - number-sizes
+	  S - seed
+	  T - a six digit timestamp, with 1 second precision
+       Default: "%f-d%d-%T"
+    
+   -K, --kept-trees=n
+       Number of champion trees to keep.  Very large ones are useless. [20]
+
+   Options related to resampling/bootstrapping (see section)
+
+   -n, --number-samples=n
+       Number of resamples to construct.  If 0, no resamples. [0]
+
+   -s, --number-sizes=n
+       Number of sample sizes. [5]
+
+   -r, --renewal-string=TEXT
+       String used as "punctuation".  [M.F.W.]
+
+   -S, --seed=n
+       Pseudo-random generator seed [time]
+
+
+Champion trees
+
+   Champion trees are written to two files, jobname.champ and jobname.prob.
+   Formats are explained in File-Formats.
+
+Resampling
+  
+   In order to resample the text, a punctuation is used.  That is a string,
+   given as a parameter; it is called renewal-string, since in case of a
+   renewal process this is a natural choice.  The default choice is the most
+   frequent word (M.F.W) of length equal to the depth.  The whole data file is
+   split into "sentences", ending at the punctuation.  Those are sampled
+   uniformly, with repetition and concatenated until the original size is
+   achieved.
+   For some tests it is necessary to have texts of different sizes.  Those
+   sizes are chosen to grow geometrically between 23% and 92% of the length of
+   the original text, and each resample is truncated to each size for whatever
+   test is being made.
+   Currently, cte computes, for each text and each champion tree, the log-loss
+   of the text when modelled by that tree.
+
+
+
+
+
+WARNING
+  The current code has a lot of cruft, like implementation of obsolete
+  options, statistical functions (which should be left for post-processing the
+  bst file), and a schizophrenic indecision between log-likelyhood and
+  log-loss.
+

@@ -1,0 +1,71 @@
+#!/usr/bin/perl
+# Time-stamp: <2013/11/12 10:54:24 hutzpa [hutzpa] am>
+
+sub usage {
+  print STDERR "
+Usage: plotbre [OPTIONS]
+       Plots a .bre file, with confidence interval for the median as specified.
+
+       -f file
+       -p pvalue     1-confidence, as usual (default 0.05)
+";
+}
+
+sub cutpoint {
+  my ($n, $p) = @_;
+  $s = $b = 1;
+  $t = $p * 2 ** ($n-1);
+  print "Eliminate $t at each end.\n";
+  for ($k = 1; $s < $t; $k++) {
+    $b *= ($n-$k+1)/$k;
+    $s += $b;
+  }
+  return $k - 1;
+}
+
+use Getopt::Std;
+
+getopts('f:p:');
+
+if (!$opt_f) {
+  usage;
+  exit;
+}
+
+$file = pop [split "/",$opt_f];
+
+$file =~ /bre$/ or $file .= ".bre";
+
+$pvalue = $opt_p || 0.05;
+
+print "$file $pvalue\n";
+
+open IN,"<$file";
+
+do {
+   $_ = <IN>;
+   print $_;
+} until /resamples/;
+
+($jk1, $jk2, $nres) = split;
+
+do {
+   $_ = <IN>;
+   print $_;
+} until length($_) <= 1;
+
+open OUT,">$file.$pvalue.reg";
+$k = cutpoint($nres, $pvalue);
+print "$nres  $k\n";
+
+$i = 1;
+while (<IN>) {
+  @regs = split;
+  printf OUT "%4d %14.8f %14.8f %14.8f\n", $i, $regs[$nres/2], $regs[$k], $regs[$nres-$k];
+  $i++;
+}
+
+close IN;
+close OUT;
+
+exec 'plotbreg', "$file.$pvalue.reg";

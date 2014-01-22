@@ -2,7 +2,7 @@
  * Context Tree Estimation
  * Selects the variable length Markov chain (VLMC) using the smallest maximizer criterion (SMC).
  */
-/* Time-stamp: <2013/05/28 11:39:41 benavuya.ime.usp.br [benavuya] am> */
+/* Time-stamp: <2014/01/21 23:02:34 hutzpa [hutzpa] am> */
 
 #include "glob.h"
 #include "read_file.h"
@@ -34,10 +34,9 @@ int main(int argc, char** argv) {
     /* Parameters and defaults */
     char *filename = NULL;
     char *c_method = NULL;
-    char *med_method = "a";
     char *res_method = "e";
     char *jn = "%f-d%d-%T";
-    int kept = 100000;
+    int kept = 20;
     // int print_champs = 0;
     FILE *qtree, *champs, *prob;
     Filename fqtree, fchamps, fprob;
@@ -54,17 +53,15 @@ int main(int argc, char** argv) {
 	    {"number-sizes",    required_argument, 0, 's'},
 	    {"renewal-string",    required_argument, 0, 'r'},
 	    {"seed",    required_argument, 0, 'S'},
-	    {"scale",    required_argument, 0, 'k'},
-	    {"champ-method",    required_argument, 0, 'c'},
+	    //{"champ-method",    required_argument, 0, 'c'},
 	    {"jobname",    required_argument, 0, 'j'},
-	    {"med_method",    required_argument, 0, 'm'},
-	    {"res_method",    required_argument, 0, 'R'},
-	    {"confidence-level",    required_argument, 0, 'C'},
+	    //{"res_method",    required_argument, 0, 'R'},
 	    //{"print-champs", no_argument, 0, 'C'},
 	    {0, 0, 0, 0}
 	};
 	int option_index = 0;
-	c = getopt_long (argc, argv, "f:d:K:n:r:s:S:c:k:j:m:R:Ch?", long_options, &option_index);
+	c = getopt_long (argc, argv, "f:d:K:n:r:s:S:k:j:m:Ch?", long_options, &option_index);
+	//c = getopt_long (argc, argv, "f:d:K:n:r:s:S:c:k:j:m:R:Ch?", long_options, &option_index);
      
 	if ( c == -1)
 	    break;
@@ -75,27 +72,21 @@ int main(int argc, char** argv) {
 	    IOPT('n', "number of resamples", number_resamples);
 	    IOPT('s', "number of sizes", num_sizes);
 	    IOPT('S', "seed", seed);
-	    FOPT('k', "scale", scale);
-	    FOPT('C', "confid", confid);
 	    SOPT('r', "renewal string", renewalstr);
-	    SOPT('c', "champ method", c_method);
+	    //SOPT('c', "champ method", c_method);
 	    SOPT('j', "job name", jn);
-	    SOPT('m', "med method", med_method);
-	    SOPT('R', "resample method", res_method);
+	    //SOPT('R', "resample method", res_method);
 	    // NOPT('C', print_champs);
 	case 'h':
 	case '?':
 	    erropt = 1;
 	}
     }
-    mess("file %s\ndepth %d\nnum %d\nnsiz %d\nseed %d\nren %s\n",
-	filename,depth,number_resamples,num_sizes,seed,renewalstr);
-    champ_method = !c_method || c_method[0] != 'o';
-    
     if(erropt){
 	usage();
 	exit(0);
     }
+    
     if (optind < argc && !filename)
 	filename = argv[optind];
 
@@ -103,6 +94,10 @@ int main(int argc, char** argv) {
 	fatal_error(MISSING_FILENAME);
 
     realpath(filename, real_filename);
+
+    mess("file %s\ndepth %d\nnum %d\nnsiz %d\nseed %d\nren %s\n",
+	filename,depth,number_resamples,num_sizes,seed,renewalstr);
+    champ_method = !c_method || c_method[0] != 'o';
 
     // starting the random number generator - seed neded for jobname
     if(!seed) seed = (unsigned int)time(NULL);
@@ -156,6 +151,7 @@ int main(int argc, char** argv) {
 	fprintf(champs, "# %d [ ", ++number_of_trees);
 	    // printf("c=%f tree=[ ", champion_item->tau->c);
 	fprint_Tau(champs, champion_item->tau);
+	fprintf(champs, "\n");
 	fpprint_Tau(champs, champion_item->tau, L0);
 	fprintf(champs, "]\n");
 
@@ -178,41 +174,32 @@ int main(int argc, char** argv) {
     mess("Kept %d champion trees.\n",number_of_trees );
 
 
-    if(!renewalstr)
-    	renewalstr = most_frequent_word(pre_root);
+    if (number_resamples) {
+	if(!renewalstr)
+	    renewalstr = most_frequent_word(pre_root);
     
-    //renewalstr = renewalstr ? strdup(renewalstr) : most_frequent_word(pre_root); // strdup, so can free
+	//renewalstr = renewalstr ? strdup(renewalstr) : most_frequent_word(pre_root); // strdup, so can free
 
-    mesg("Resampling.");
+	mesg("Resampling.");
 
-    switch (*res_method) {
-    case 'r':
-	mesg("Using rand method.\n");
-	resamples = resample_rand(sample, pre_root, renewalstr, num_sizes, number_resamples);
-	break;
-    default: mesg("Wrong resampling method, so...");
-    case 'e':
-	mesg("Using ext method.\n");
-	resamples = resample_ext(sample, pre_root, renewalstr, num_sizes, number_resamples);
-    }
-    
+	switch (*res_method) {
+	case 'e':
+	    mesg("Using ext method.\n");
+	    resamples = resample_ext(sample, pre_root, renewalstr,
+				     num_sizes, number_resamples);
+	    break;
 	
-    
-    free_lines(sample);
-
-    mesg("\nBootstrap starting");
-
-    switch (med_method[0]) {
-    case 'a': mid_and_errors = av_and_dev;
-	mesg("Using averages.");
-	break;
-    case 'm': mid_and_errors = med_and_quart;
-	mesg("Using medians.");
-	break;
+	case 'r':
+	    mesg("Using rand method.\n");
+	    resamples = resample_rand(sample, pre_root, renewalstr,
+				      num_sizes, number_resamples);
+	    break;
+	default: mesg("Wrong resampling method, so...");
+	}
+	free_lines(sample);
+	mesg("\nBootstrap starting");
+	bootstrap(resamples, champion_bics, depth);
     }
-    
-	
-    bootstrap(resamples, champion_bics, depth);
 }
 
 void make_jobname(char *jname, char *spec)

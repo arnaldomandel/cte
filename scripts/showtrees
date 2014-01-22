@@ -1,8 +1,8 @@
 #!/bin/bash
-# Time-stamp: <2013/05/25 08:35:01 hutzpa [hutzpa] am>
+# Time-stamp: <2014/01/22 16:13:50 benavuya.ime.usp.br [benavuya] am>
 
 usage() {
-echo "Usage: showtrees -f filename [OPTIONS]
+echo "Usage: showtrees -j jobname [OPTIONS]
       Shows images of trees extracted from a .qtree file.
 
       Options:               [default]
@@ -16,10 +16,10 @@ end=0
 file=""
 scriptsdir=${0%/*}
 
-while getopts f:s:e: opt 
+while getopts j:s:e: opt 
 do
     case $opt in
-	f)
+	j)
 	    file=$OPTARG
 	    ;;
 	s)

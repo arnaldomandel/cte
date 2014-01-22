@@ -1,0 +1,24 @@
+cte comes with a bunch of auxiliary programs which help visualizing and show
+how to use the files output by cte.  As a rule, any of these called without
+arguments exhibit a message explaining the call.
+
+simula - given a jobname and a champion tree number, generates a file of a
+       	 given size simulating the tree process
+
+dotree
+showtrees - both are given a jobname an an interval of champion trees to show.
+	    Both produce pdf file, shown through adobe reader.  dotree uses
+	    dot, from the graphwiz package; showtrees uses LaTeX, with the
+	    qtree package.  qtree can only handles alphabets of size up to 5,
+	    dotree has no limitation (except for visual).
+
+seltree - tries to select a tree by the SMC criterion, using the Wilcoxon test
+	  to detect the inflexion point on log-loss.
+
+Data file generation:
+
+perturb
+shufunif - simple program that perturb a data file, used to check the
+	   stability of the algorithm
+
+genpars - generates a stationary, non-ergodic process.  cte goes crazy.

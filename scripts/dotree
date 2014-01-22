@@ -1,0 +1,88 @@
+#!/usr/bin/perl
+# Time-stamp: <2014/01/22 16:10:13 benavuya.ime.usp.br [benavuya] am>
+
+use GraphViz;
+use Getopt::Std;
+
+$g=0;
+$nodename=0;
+@inst=[];
+$start=1;
+$end=1000;
+$file="";
+
+sub usage {
+print "Usage: dotree -j jobname [OPTIONS]
+      Shows images of trees extracted from a .qtree file.
+
+      Options:               [default]
+        -s  s          Start with tree s [1]
+        -e  e          End with tree e [last]
+";
+}
+
+sub addSubtree {
+  my $parent = shift;
+  while (defined($tok = shift @inst) && $tok ne "]" ) {
+    my $name = ++$nodename;
+    if ($tok =~ /\[\.(.*)/) {
+      $g->add_node($name, label => $1, shape => "plaintext");
+      $g->add_edge($parent => $name, dir => "none");
+      &addSubtree ($name);
+    } else {
+      $g->add_node($name, label => $tok, shape => "plaintext");
+      $g->add_edge($parent => $name, dir => "none");
+    }
+  }
+}
+
+sub makeGraph {
+  my $tree =  $_;
+  $tree =~ s/]/] /g;
+  #print $tree;
+
+  @inst = split " ", $tree;
+
+  $g = GraphViz->new();
+  $g->add_node(0, style => "invis", ratio => "fill", size => "8,4!");
+  addSubtree 0;
+}
+
+getopts('hj:s:e:');
+if ($opt_h || !$opt_j) {
+  usage;
+  exit;
+}
+
+$file = $opt_j;
+$start = $opt_s || $start;
+$end = $opt_e || $end;
+
+if (!($file =~ /\.qtree$/)) {
+  $file .= '.qtree';
+}
+
+open QT, "<$file" or die "$file not found or not readable.\n";
+
+#system "acroread &";
+
+if (!($pid = fork)) {
+  exec "acroread";
+}
+
+sleep 2;
+
+$i = 0;
+while (<QT>) {
+  if (++$i >= $start && $i <= $end) {
+    s/.Tree *\[\./[.($i)/;
+    makeGraph $_;
+    open my $p, '| dot -T pdf | acroread - ' or die $!;
+    #print $g->as_text;
+    #open my $p, '| display ' or die $!;
+    #open my $p, '| gv' or die $!;
+    print $p $g->as_canon;
+  }
+  $_ = <QT>;
+  close $p;
+}

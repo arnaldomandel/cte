@@ -1,7 +1,7 @@
 /*
  * bootstrap.c
  */
-/* Time-stamp: <2013/08/21 14:21:12 benavuya.ime.usp.br [benavuya] am> */
+/* Time-stamp: <2013/12/20 14:30:56 benavuya.ime.usp.br [benavuya] am> */
 #include "glob.h"
 #include "bic.h"
 #include "tau.h"
@@ -12,8 +12,8 @@
 #include "stats.h"
     
 // definition of functions implemented below
-int accept_tree(Resamples resample, Tau current_tree, Tau next_tree);
-void delta_tau(Resamples res, Tau current_tree, Tau next_tree, datapoint **deltatau, datapoint **ddeltatau);
+//int accept_tree(Resamples resample, Tau current_tree, Tau next_tree);
+//void delta_tau(Resamples res, Tau current_tree, Tau next_tree, datapoint **deltatau, datapoint **ddeltatau);
 // double threshold(int size);
 void get_pre_trees(Resamples res, int depth) ;
 void append_L_data(Tree_node node, Resamples res);
@@ -23,21 +23,16 @@ void freemat(siz_by_samp matrix, int lines);
 
 
 // from student.c
-void student(double *X, int Nx, double *Y, int Ny, double *both, double *left, double *right);
+//void student(double *X, int Nx, double *Y, int Ny, double *both, double *left, double *right);
 
 /*
  * Main method of the Bootstrap procedure.
  * Returns the tree that passes the t-student test
  */
 Tau bootstrap(Resamples resample, Champion_item champion_set, int depth) {
-    int number_of_trees = 0;
-    Tau* champion_trees;
-    Champion_item item;
-    FILE *bstrap, *reg;
-    Filename fbstrap, freg;
+    FILE *bstrap;
+    Filename fbstrap;
     //double pvalue;
-    double beta, dev, tscore;
-    datapoint *dt, *ddt;
     
     // complete the resample info
     get_pre_trees(resample, depth);
@@ -49,62 +44,29 @@ Tau bootstrap(Resamples resample, Champion_item champion_set, int depth) {
     sprintf(fbstrap, "%s.bst", jobname);
     bstrap = fopen(fbstrap, "w");
     fprintf(bstrap,
-	    "# bst\n# file: %s\n# depth: %d\n# split: %s\n# resamples: %d\n# sizes: %d\n# seed: %d\n\n",
-	    real_filename, depth, renewalstr, number_resamples, num_sizes, seed);
+	    "# bst\n# file: %s\n# depth: %d\n# split: %s\n# resamples: %d\n# sizes: %d : ",
+	    real_filename, depth, renewalstr, number_resamples, num_sizes);
+    for(int j = 0; j < resample->num_sizes; j++)
+	    fprintf(bstrap, "%d ", resample->s[j].size);
+    fprintf(bstrap, "\n# seed: %d\n\n", seed);
     
-    sprintf(freg, "%s.reg", jobname);
-    reg = fopen(freg, "w");
-    fprintf(reg, 
-	    "# reg\n# file: %s\n# depth: %d\n# split: %s\n# resamples: %d\n# sizes: %d\n# seed: %d\n\n",
-	    real_filename, depth, renewalstr, number_resamples, num_sizes, seed);
-    
-    // extract the Taus from the champion set to an array
-    ITERA(, item, champion_set, next)
-      number_of_trees++;
-    MEM(,champion_trees, (Tau*) malloc(number_of_trees * sizeof(Tau)));
-    item = champion_set;
-    // for (int i = number_of_trees - 1; i >= 0; i--) {
-    for (int i = 0; i < number_of_trees; i++) {
-	champion_trees[i] = item->tau;
-	item = item->next;
-    }
-    
-    MEM(datapoint *, td, (datapoint *) calloc(resample->num_sizes, sizeof(datapoint)));
-    MEMTZ(double, ddeltas, resample->num_sizes);
-
-    // n = resample->num_sizes-1,  degrees of freedom = n-2
-    tscore = tvalue(confid, resample->num_sizes - 3);
-    for (int i = 0; i < number_of_trees - 1; i++) {
-	//pprint_Tau(champion_trees[i]);
-	//pprint_Tau(champion_trees[i+1]);
-	DEB("tree %d\n", i);
-	delta_tau(resample, champion_trees[i+1], champion_trees[i], &dt, &ddt);
-	fprintf(bstrap, "%12.6f %12.6f %12.6f     ?\n", dt[0].val, dt[0].vlow, dt[0].vhigh);
-	// fprintf(bstrap, "%12.6f %10.6f     ?        %12.6f\n", td[0].val, td[0].dev,
-	//       td[0].val/threshold(resample->s[0].size));
-	for(int j = 1; j < resample->num_sizes; j++) {
-	    // fprintf(bstrap, "%12.6f %10.6f %12.6f %12.6f\n",
-	    fprintf(bstrap, "%12.6f %12.6f %12.6f %12.6f %12.6f %12.6f\n",
-		    dt[j].val, dt[j].vlow, dt[j].vhigh,
-		    ddt[j].val, ddt[j].vlow, ddt[j].vhigh);
-	    //ddeltas[j] = td[j].val; // GÂMBIA!!!!
-		    // td[j].val/threshold(resample->s[j].size));
-	    ddeltas[j] = ddt[j-1].val;
-	    //ddeltas[j] = (dt[j].val - dt[0].val)/j;
+    int tree_num = 0;
+    ITERA(Champion_item, current_tree, champion_set, next) {
+	tree_num++;
+	DEB("tree %d\n", tree_num);
+	fprintf(bstrap, "{%d}\n", tree_num);
+	siz_by_samp L_tau = L_tau_mat(current_tree->tau, resample);
+	
+	for(int j = 0; j < resample->num_sizes; j++) {
+	    fprintf(bstrap, "[%d] ", j);
+	    for (int i = 0; i < resample->num_resamples; i++)
+		fprintf(bstrap, "%12.8f", -L_tau[j][i]);
+	    fprintf(bstrap, "\n");
 	}
-	fprintf(bstrap, "\n\n");
-	//fprintf(reg, "%5d %13.10f\n", i, regress(ddeltas, resample->num_sizes));
-	//full_regress(ddeltas, resample->num_sizes, &beta, &pvalue);
-	//full_regress(ddeltas, resample->num_sizes, &beta, &pvalue, &tscore);
-	// regress wants start at index 1
-	full_regress(ddeltas, resample->num_sizes-1, &beta, &dev);
-	fprintf(reg, "%5d %13.10f %13.10f %13.10f %13.10f\n", i, beta, dev*tscore, dev,
-		p_value(beta/dev,resample->num_sizes - 3) );
+	fprintf(bstrap, "\n");
     }
     fclose(bstrap);
-    fclose(reg);
     
-    free(champion_trees);
     return champion_set->tau;
 }
 
@@ -211,7 +173,8 @@ siz_by_samp L_tau_mat(Tau tau, Resamples res)
 	Tree_node node = node_of_word(res->orig_tree, item->string);
 	for(int j = 0; j < res->num_sizes; j++)
 	    for(int i = 0; i < res->num_resamples; i++)
-		mat[j][i] += node->p.L[j][i];
+		mat[j][i] += node->p.L[j][i] / res->s[j].size; /* had forgotten to divide by size */
+		/* mat[j][i] += node->p.L[j][i]; */
     }
     return mat;
 }

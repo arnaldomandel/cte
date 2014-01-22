@@ -1,0 +1,87 @@
+#!/bin/bash
+# Time-stamp: <2013/05/28 19:08:21 benavuya.ime.usp.br [benavuya] am>
+
+usage() {
+    echo "Usage:  plotdl -f filename [OPTIONS] 
+      Plots the .bst file filename, several trees per page.
+
+      Options:               [default]
+        -o            Output a pdf file [gnuplot movie]
+        -c  c         Plot column c [4]
+        -F  f         From tree f [1]
+        -N  n         Plot n graphs per page [3]
+        -I  i         Increment tree number by i in a page[1]
+        -T  t         Last tree to print [end]
+        -d  d         Increment page by d [1]
+        -r  range     Gnuplot yrange for graphs [auto]
+    Each page has n graphs, corresponding to tree number k,
+    and numbers incremented by i.  The number k is incremented by d.   
+"
+}
+
+file=""
+col=4
+From=1
+To=100000
+Npp=3
+Inc=1
+Delta=1
+range=""
+pause=1
+scriptsdir=${0%/*}
+pdf=""
+
+while getopts of:c:F:N:I:T:d:p:r: opt 
+do
+    case $opt in
+	f) file=$OPTARG
+	   ;;
+	o) pdf=1
+	   ;;
+	c) col=$OPTARG
+	   ;;
+	F) From=$OPTARG
+	   ;;
+	N) Npp=$OPTARG
+	   ;;
+	I) Inc=$OPTARG
+	   ;;
+	T) To=$OPTARG
+	   ;;
+	d) Delta=$OPTARG
+	   ;;
+	p) pause=$OPTARG
+	   ;;
+	r) range="set yrange[$OPTARG]"
+	   ;;
+	?) usage
+	   exit
+	   ;;
+	esac
+done
+
+if [ -z $file ]
+then
+    usage
+    exit
+fi
+
+file=${file%.bst}.bst
+if [ ! -r $file ]
+then
+    echo $file not found or not readable.
+    exit
+fi
+if [ $pdf ]
+then
+    hasout="nofile=0;set term pdfcairo;set output \"${file%.bst}.pdf\""
+else
+    hasout="nofile=1;set term x11 size 1200,800"
+fi
+
+#echo file $file hasout $hasout col $col From $From
+
+gnuplot -e "file=\"$file\";col=$col;$hasout;From=$From;To=$To;Inc=$Inc;Npp=$Npp;Delta=$Delta;$range;Pause=$pause" $scriptsdir/plotdelta.gp 2>/dev/null
+
+#gnuplot -e "file=\"$file\";col=$col;$hasout;From=$From;To=$To;Inc=$Inc;Npp=$Npp;Delta=$Delta;\
+#            print file, col, nofile, From, To, Inc, Npp, Delta" #plotdl.gp

@@ -1,27 +1,30 @@
+For each of these files, it is indicated which parameters of cte are used in
+its generation.
+
 champ
-  Contains on each line a champion tree, in order of increased penalty.
-  Each line has the format:
-  # num [ tree ]
-  where num is a (sequencial) number and tree is a list of suffix labels of
-  the leaves of the tree; each label is a word, they are separated by spaces;
-  labels are in reverse lex order.
-  TODO: a better reading format is
-  # num [
-         label
-         label
-         label
-        ]
-       maybe it is good to have a converter for this form (one line perl program)
+  Contains the list of champion trees, in increasing order.
+  Each tree is described in a record, consisting of text lines:
+  line 1: # num [ list 
+       where num is the number of the tree (decimal, starts at 1)
+       list is the set of labels of the leaves, in reverse lexicographic
+       order, separated by space
+  line 2: a parenthesized list of values, to be documented)
+  next lines: the same list as in line 1, one word per line, right aligned
+  last line: a single ]
+  Rationale: line 1 contains the whole tree, so a program processing the cham
+  trees needs only to look at lines tarting with a #.
+  The redundant printing of the list is for visual, human checking.
   Depends: file, depth
 
 qtree
-  Same list as the corresponding champ file.  Each tree is a single line \Tree
-  command for qtree, followed by a line with \newpage.
+  Same list as the corresponding champ file, as a qtree (this is a LaTeX
+  package, its documentation describes the format).  Each tree is a single
+  line \Tree command for qtree, followed by a line with \newpage.  
   Depends: file, depth
 
 prob
-  Transition probabilities computed from the initial sample.
-  Each line has th form:
+  Transition probabilities computed from the given sample.
+  Each line has the form:
     w - a:x b:y ...
   where 
     w is a word of legth <= depth, found in the sample
@@ -29,26 +32,32 @@ prob
     each pair like a:x means:
        a is one alphabet symbol
        x = p(wa|w)
+  Note: if a symbol is missing, it means that the corresponding transition was
+  not found in the sample.
   Depends: file, depth
 
 bst
-  Main bootstrapping results.
-  Lines starting with # are comments.
-  Follows by lines in 3 columns, in blocks separated by two blank lines.
-  Each block corresponds to a champ tree, in the same order as before.
-  Each line corresponds to a resample size.  For a given size and tree t,
-  the corresponding first column entry is an estimate of
-   log-likelihood(t, size) - log-likelihood(t', size)
-  where t' is the next tree, and the estimator is the average of the
-  computed values over the resamples of that size; in the same line column 2
-  there appears the standard deviatiation computed alongside the average.
-  The third column contains the difference between the corresponding first
-  column and the same column shifted one row down; the first entry in the
-  column is alwais a ? , meaning "undefined".
+  Bootstrapping results.
+  Lines starting with # are comments, informing the several parameters
+  involved in the resampling.  In particular,
+  # resamples: r
+  # sizes: s : s0 s1 ...
+  where r is the actual number of resamples, s is the number of sizes, which
+  are s0, s1,...
+  So, cte generated r resamples, and they where cut to sizes s0,s1,...
 
+  For each tree there is a record consisting of lines:
+  line 1: {num}
+    Where num is the same as in the champ file
+  sequence of lines, one for each size, of form:
+    [size number] L1 L2...  (r values)
+    where each Lj is the log-loss for corresponding resample, cut to the size
+    indexed by the line
+  Records are separated by a blank line.
   Depends: file, depth, number of resamples, number of sizes, seed, renewal string
+
  
-reg
+reg - production temporarily suspended
   Lines starting with # are comments.
   One line for each champ three of the form
    num coef

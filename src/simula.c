@@ -156,9 +156,11 @@ Tau choose_tau_from_champ(FILE *champfile, int num, char *maxs)
     int i, s;
     Tau t = new_Tau();
 
-    for(i = 1; i < num; i++)
-	read_line(champfile);
-    line = read_line(champfile);
+    for(i = 0; i < num; ) {
+	line = read_line(champfile);
+	if ( line[0] == '#') i++;
+    }
+    
     tok = strtok(line, "# ");
     if(atoi(tok) != num) {
 	mess("line %d: %s\n", num, line);
@@ -174,6 +176,33 @@ Tau choose_tau_from_champ(FILE *champfile, int num, char *maxs)
     }
     return t;
 }
+
+/* 
+ * Tau choose_tau_from_champ(FILE *champfile, int num, char *maxs)
+ * {
+ *     char *line, *tok;
+ *     int i, s;
+ *     Tau t = new_Tau();
+ * 
+ *     for(i = 1; i < num; i++)
+ * 	read_line(champfile);
+ *     line = read_line(champfile);
+ *     tok = strtok(line, "# ");
+ *     if(atoi(tok) != num) {
+ * 	mess("line %d: %s\n", num, line);
+ * 	exit(1);
+ *     }
+ *     int maxl = 0;
+ *     while((tok = strtok(NULL, " []"))) {
+ * 	if((s = strlen(tok)) > maxl) {
+ * 	    strcpy(maxs, tok);
+ * 	    maxl = s;
+ * 	}
+ * 	insert_tau_item(t, tok, 1.);
+ *     }
+ *     return t;
+ * }
+ */
 
 // Mark all usable nodes
 void prune(Tree_node tree, Tau tau)  

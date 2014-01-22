@@ -1,4 +1,4 @@
-/* Time-stamp: <2013/05/28 11:39:43 benavuya.ime.usp.br [benavuya] am> */
+/* Time-stamp: <2014/01/21 23:06:04 hutzpa [hutzpa] am> */
 
 #include "glob.h"
 
@@ -11,7 +11,7 @@ Filename jobname;  // base name for all generated files
 // These globals are command line parameters and are set once in main.c
 char real_filename[PATH_MAX];
 unsigned int depth = 5;
-unsigned int number_resamples = 10;
+unsigned int number_resamples = 0;
 unsigned int num_sizes = 5;
 unsigned int seed = 0;
 char *renewalstr = NULL;

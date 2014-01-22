@@ -1,5 +1,5 @@
 #!/bin/bash
-# Time-stamp: <2013/06/17 14:50:10 hutzpa [hutzpa] am>
+# Time-stamp: <2013/11/10 08:18:41 hutzpa [hutzpa] am>
 
 filelist=""
 range=""
@@ -12,9 +12,9 @@ do
 	    ;;
 	*)  if [ -z "$filelist" ]
 	    then
-		filelist="\\\"${1%.reg}.reg\\\" using 2,\\\"${1%.reg}.reg\\\" using 1:2:3 with yerrorbars"
+		filelist="\\\"${1%.reg}.reg\\\" using 1:2,\\\"${1%.reg}.reg\\\" using 1:2:3:4 with yerrorbars"
 	    else
-		filelist=$filelist,"\\\"${1%.reg}.reg\\\" using 2,\\\"${1%.reg}.reg\\\" using 1:2:3 with yerrorbars"
+		filelist=$filelist,"\\\"${1%.reg}.reg\\\" using 1:2,\\\"${1%.reg}.reg\\\" using 1:2:3:4 with yerrorbars"
 	    fi
 	    ;;
 	esac
